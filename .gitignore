@@ -16,3 +16,7 @@ toy_active_mapping_ppo/Unity_envs
 model_based_active_mapping/scripts/checkpoints
 model_based_active_mapping/scripts/tensorboard
 **.pyc
+model_based_active_mapping/scripts/test_results/
+model_based_active_mapping/scripts/training_visualizations/
+model_based_active_mapping/scripts/logs/
+model_based_active_mapping/scripts/test_trails/

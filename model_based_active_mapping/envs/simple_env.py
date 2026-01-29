@@ -1,13 +1,17 @@
+import os
 import torch
 import cv2
 import numpy as np
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
+from matplotlib.patches import Polygon, Circle
 
 from typing import Tuple
 from torch import tensor
-from utilities.utils import SE2_kinematics, landmark_motion_real
+from utilities.utils import SE2_kinematics, landmark_motion_real, triangle_SDF
 
 
 class SimpleEnv:
@@ -31,6 +35,17 @@ class SimpleEnv:
 
         self._psi = psi
         self._radius = radius
+        self._episode_id = 0
+        self._video_writer = None
+        self._video_path = None
+        self._video_frame_size = None
+
+    def _reset_video_state(self):
+        if self._video_writer is not None:
+            self._video_writer.release()
+        self._video_writer = None
+        self._video_path = None
+        self._video_frame_size = None
 
     def reset(self):
         mu = (torch.rand((self._num_landmarks, 2)) - 0.5) * self._env_size
@@ -49,8 +64,10 @@ class SimpleEnv:
         self._step_num = 0
 
         self.history_poses = [self._x.detach().numpy().tolist()]
-        self.fig = plt.figure(1)
-        self.ax = self.fig.gca()
+        self.fig = None
+        self.ax = None
+        self._episode_id += 1
+        self._reset_video_state()
 
         return self._mu_real, v, x, False
 
@@ -112,6 +129,9 @@ class SimpleEnv:
     #     cv2.waitKey(100)
 
     def _plot(self, legend, title='trajectory'):
+        if self.fig is None or self.ax is None:
+            self.fig = plt.figure(1)
+            self.ax = self.fig.gca()
         self.landmarks = self._mu_real.flatten().detach().numpy().reshape(self._num_landmarks*2, 1)
 
         # plot agent trajectory
@@ -145,22 +165,106 @@ class SimpleEnv:
             plt.legend(prop={'size': 14})
 
 
+    def _draw_on_axis_single(self, ax):
+        ax.clear()
+
+        if torch.is_tensor(self._x):
+            robot_t = self._x.detach().cpu()
+            robot = robot_t.numpy()
+        else:
+            robot = np.array(self._x)
+            robot_t = torch.tensor(robot, dtype=torch.float32)
+
+        if torch.is_tensor(self._mu_real):
+            landmarks_t = self._mu_real.detach().cpu()
+            landmarks = landmarks_t.numpy()
+        else:
+            landmarks = np.array(self._mu_real)
+            landmarks_t = torch.tensor(landmarks, dtype=torch.float32)
+
+        all_x = np.concatenate(([robot[0]], landmarks[:, 0]))
+        all_y = np.concatenate(([robot[1]], landmarks[:, 1]))
+        min_x, max_x = np.min(all_x), np.max(all_x)
+        min_y, max_y = np.min(all_y), np.max(all_y)
+        padding = 5.0
+        ax.set_xlim(min_x - padding, max_x + padding)
+        ax.set_ylim(min_y - padding, max_y + padding)
+        ax.set_aspect('equal')
+        ax.grid(True, alpha=0.3)
+        ax.set_title(f"Step: {self._step_num}", fontsize=12)
+
+        rx, ry, r_theta = float(robot[0]), float(robot[1]), float(robot[2])
+        robot_circle = Circle((rx, ry), 0.2, color='black', zorder=5)
+        ax.add_patch(robot_circle)
+        arrow_len = 0.3
+        ax.arrow(rx, ry, arrow_len * np.cos(r_theta), arrow_len * np.sin(r_theta),
+                 head_width=0.1, color='white', zorder=6)
+
+        psi_val = self._psi.item() if torch.is_tensor(self._psi) else float(self._psi)
+        radius_val = self._radius.item() if torch.is_tensor(self._radius) else float(self._radius)
+        angle_left = r_theta + psi_val
+        angle_right = r_theta - psi_val
+
+        x_left = rx + radius_val * np.cos(angle_left)
+        y_left = ry + radius_val * np.sin(angle_left)
+        x_right = rx + radius_val * np.cos(angle_right)
+        y_right = ry + radius_val * np.sin(angle_right)
+
+        fov_verts = np.array([[rx, ry], [x_left, y_left], [x_right, y_right]])
+        fov_patch = Polygon(fov_verts, closed=True, color='blue', alpha=0.15, zorder=1)
+        ax.add_patch(fov_patch)
+        ax.plot([rx, x_left], [ry, y_left], color='blue', alpha=0.3, linewidth=1)
+        ax.plot([rx, x_right], [ry, y_right], color='blue', alpha=0.3, linewidth=1)
+
+        q = torch.vstack((
+            (landmarks_t[:, 0] - robot_t[0]) * torch.cos(robot_t[2]) +
+            (landmarks_t[:, 1] - robot_t[1]) * torch.sin(robot_t[2]),
+            (robot_t[0] - landmarks_t[:, 0]) * torch.sin(robot_t[2]) +
+            (landmarks_t[:, 1] - robot_t[1]) * torch.cos(robot_t[2])
+        )).T
+        sdf = triangle_SDF(q, self._psi, self._radius)
+        is_seen = (sdf <= 0).cpu().numpy()
+        colors = ['green' if seen else 'red' for seen in is_seen]
+        sizes = [100 if seen else 50 for seen in is_seen]
+        ax.scatter(landmarks[:, 0], landmarks[:, 1], c=colors, s=sizes, marker='*', zorder=4)
+
+    def get_current_frame(self):
+        fig = Figure(figsize=(10, 10), dpi=100)
+        canvas = FigureCanvasAgg(fig)
+        ax = fig.add_subplot(111)
+        self._draw_on_axis_single(ax)
+        canvas.draw()
+        data = np.frombuffer(canvas.buffer_rgba(), dtype=np.uint8)
+        w, h = fig.get_size_inches() * fig.get_dpi()
+        w, h = int(w), int(h)
+        data = data.reshape((h, w, 4))
+        return data[:, :, :3]
+
     def render(self, mode='human'):
-        self.ax.cla()
+        frame = self.get_current_frame()
 
-        # plot
-        self._plot(True)
+        os.makedirs('test_trails', exist_ok=True)
+        if self._video_writer is None:
+            height, width, layers = frame.shape
+            self._video_frame_size = (width, height)
+            self._video_path = os.path.join('test_trails', f'episode_{self._episode_id:04d}.avi')
+            fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+            self._video_writer = cv2.VideoWriter(self._video_path, fourcc, 5, self._video_frame_size)
 
-        # display
-        plt.draw()
-        plt.pause(0.2)
+        self._video_writer.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
 
     def save_plot(self, name='default.png', title='trajectory', legend=False):
+        if self.fig is None or self.ax is None:
+            self.fig = plt.figure(1)
+            self.ax = self.fig.gca()
         self.ax.cla()
         self._plot(legend, title=title)
         self.fig.savefig(name, bbox_inches = 'tight')
 
     def close (self):
+        if self._video_writer is not None:
+            self._video_writer.release()
+            self._video_writer = None
         plt.close('all')
 
 
@@ -183,11 +287,22 @@ class SimpleEnvAtt:
 
         self._psi = psi
         self._radius = radius
+        self._episode_id = 0
+        self._video_writer = None
+        self._video_path = None
+        self._video_frame_size = None
+
+    def _reset_video_state(self):
+        if self._video_writer is not None:
+            self._video_writer.release()
+        self._video_writer = None
+        self._video_path = None
+        self._video_frame_size = None
 
     def reset(self):
         self._num_landmarks = torch.randint(3, 8, (1, )).item()
         self._env_size = tensor([self._num_landmarks * 4, self._num_landmarks * 4])
-        self._horizon = self._num_landmarks * 3
+        self._horizon = self._num_landmarks * 5
         mu = (torch.rand((self._num_landmarks, 2)) - 0.5) * self._env_size
 
         landmark_motion_bias = (torch.rand(2) - 0.5) * 1.6
@@ -204,8 +319,10 @@ class SimpleEnvAtt:
         self._step_num = 0
 
         self.history_poses = [self._x.detach().numpy().tolist()]
-        self.fig = plt.figure(1)
-        self.ax = self.fig.gca()
+        self.fig = None
+        self.ax = None
+        self._episode_id += 1
+        self._reset_video_state()
 
         return self._mu_real, v, x, False
 
@@ -230,6 +347,9 @@ class SimpleEnvAtt:
         return self._mu_real, self._v, self._x, done
 
     def _plot(self, legend, title='trajectory'):
+        if self.fig is None or self.ax is None:
+            self.fig = plt.figure(1)
+            self.ax = self.fig.gca()
         self.landmarks = self._mu_real.flatten().detach().numpy().reshape(self._num_landmarks*2, 1)
 
         # plot agent trajectory
@@ -263,20 +383,104 @@ class SimpleEnvAtt:
             plt.legend(prop={'size': 14})
 
 
+    def _draw_on_axis_single(self, ax):
+        ax.clear()
+
+        if torch.is_tensor(self._x):
+            robot_t = self._x.detach().cpu()
+            robot = robot_t.numpy()
+        else:
+            robot = np.array(self._x)
+            robot_t = torch.tensor(robot, dtype=torch.float32)
+
+        if torch.is_tensor(self._mu_real):
+            landmarks_t = self._mu_real.detach().cpu()
+            landmarks = landmarks_t.numpy()
+        else:
+            landmarks = np.array(self._mu_real)
+            landmarks_t = torch.tensor(landmarks, dtype=torch.float32)
+
+        all_x = np.concatenate(([robot[0]], landmarks[:, 0]))
+        all_y = np.concatenate(([robot[1]], landmarks[:, 1]))
+        min_x, max_x = np.min(all_x), np.max(all_x)
+        min_y, max_y = np.min(all_y), np.max(all_y)
+        padding = 5.0
+        ax.set_xlim(min_x - padding, max_x + padding)
+        ax.set_ylim(min_y - padding, max_y + padding)
+        ax.set_aspect('equal')
+        ax.grid(True, alpha=0.3)
+        ax.set_title(f"Step: {self._step_num}", fontsize=12)
+
+        rx, ry, r_theta = float(robot[0]), float(robot[1]), float(robot[2])
+        robot_circle = Circle((rx, ry), 0.2, color='black', zorder=5)
+        ax.add_patch(robot_circle)
+        arrow_len = 0.3
+        ax.arrow(rx, ry, arrow_len * np.cos(r_theta), arrow_len * np.sin(r_theta),
+                 head_width=0.1, color='white', zorder=6)
+
+        psi_val = self._psi.item() if torch.is_tensor(self._psi) else float(self._psi)
+        radius_val = self._radius.item() if torch.is_tensor(self._radius) else float(self._radius)
+        angle_left = r_theta + psi_val
+        angle_right = r_theta - psi_val
+
+        x_left = rx + radius_val * np.cos(angle_left)
+        y_left = ry + radius_val * np.sin(angle_left)
+        x_right = rx + radius_val * np.cos(angle_right)
+        y_right = ry + radius_val * np.sin(angle_right)
+
+        fov_verts = np.array([[rx, ry], [x_left, y_left], [x_right, y_right]])
+        fov_patch = Polygon(fov_verts, closed=True, color='blue', alpha=0.15, zorder=1)
+        ax.add_patch(fov_patch)
+        ax.plot([rx, x_left], [ry, y_left], color='blue', alpha=0.3, linewidth=1)
+        ax.plot([rx, x_right], [ry, y_right], color='blue', alpha=0.3, linewidth=1)
+
+        q = torch.vstack((
+            (landmarks_t[:, 0] - robot_t[0]) * torch.cos(robot_t[2]) +
+            (landmarks_t[:, 1] - robot_t[1]) * torch.sin(robot_t[2]),
+            (robot_t[0] - landmarks_t[:, 0]) * torch.sin(robot_t[2]) +
+            (landmarks_t[:, 1] - robot_t[1]) * torch.cos(robot_t[2])
+        )).T
+        sdf = triangle_SDF(q, self._psi, self._radius)
+        is_seen = (sdf <= 0).cpu().numpy()
+        colors = ['green' if seen else 'red' for seen in is_seen]
+        sizes = [100 if seen else 50 for seen in is_seen]
+        ax.scatter(landmarks[:, 0], landmarks[:, 1], c=colors, s=sizes, marker='*', zorder=4)
+
+    def get_current_frame(self):
+        fig = Figure(figsize=(10, 10), dpi=100)
+        canvas = FigureCanvasAgg(fig)
+        ax = fig.add_subplot(111)
+        self._draw_on_axis_single(ax)
+        canvas.draw()
+        data = np.frombuffer(canvas.buffer_rgba(), dtype=np.uint8)
+        w, h = fig.get_size_inches() * fig.get_dpi()
+        w, h = int(w), int(h)
+        data = data.reshape((h, w, 4))
+        return data[:, :, :3]
+
     def render(self, mode='human'):
-        self.ax.cla()
+        frame = self.get_current_frame()
 
-        # plot
-        self._plot(True)
+        os.makedirs('test_trails', exist_ok=True)
+        if self._video_writer is None:
+            height, width, layers = frame.shape
+            self._video_frame_size = (width, height)
+            self._video_path = os.path.join('test_trails', f'episode_{self._episode_id:04d}.avi')
+            fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+            self._video_writer = cv2.VideoWriter(self._video_path, fourcc, 5, self._video_frame_size)
 
-        # display
-        plt.draw()
-        plt.pause(0.3)
+        self._video_writer.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
 
     def save_plot(self, name='default.png', title='trajectory', legend=False):
+        if self.fig is None or self.ax is None:
+            self.fig = plt.figure(1)
+            self.ax = self.fig.gca()
         self.ax.cla()
         self._plot(legend, title=title)
         self.fig.savefig(name, bbox_inches = 'tight')
 
     def close (self):
+        if self._video_writer is not None:
+            self._video_writer.release()
+            self._video_writer = None
         plt.close('all')

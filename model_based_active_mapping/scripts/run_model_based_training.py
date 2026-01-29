@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+import cv2
 
 from torch import tensor
 from envs.simple_env import SimpleEnv, SimpleEnvAtt
@@ -75,7 +76,7 @@ def run_model_based_training(params_filename):
 
     agent.train_policy()
     reward_list = np.empty((max_epoch, batch_size))
-    action_list = np.empty((max_epoch * batch_size, horizon, 2))
+    action_list = np.full((max_epoch * batch_size, horizon, 2), np.nan)
     best_reward = 1.
     for i in range(max_epoch):
         agent.set_policy_grad_to_zero()
@@ -108,8 +109,38 @@ def run_model_based_training(params_filename):
             best_reward = mean_reward
             print("New best model!\n")
 
+        if (i + 1) % 50 == 0:
+            print(f"Saving visualization for epoch {i + 1}...")
+            os.makedirs('./training_visualizations', exist_ok=True)
+
+            mu_real, v, x, done = env.reset()
+            agent.reset_estimate_mu(mu_real)
+            agent.reset_agent_info()
+
+            frames = []
+            with torch.no_grad():
+                step = 0
+                while not done and step < 50:
+                    action = agent.plan(v, x)
+                    mu_real, v, x, done = env.step(action)
+                    agent.update_info_mu(mu_real, x)
+                    frame = env.get_current_frame()
+                    frames.append(frame)
+                    step += 1
+
+            if frames:
+                height, width, layers = frames[0].shape
+                video_name = f'./training_visualizations/epoch_{i+1}_seed{args.seed}.avi'
+                fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+                video = cv2.VideoWriter(video_name, fourcc, 5, (width, height))
+                for frame in frames:
+                    video.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+                video.release()
+                print(f"Saved video to {video_name}\n")
+
     torch.save(agent.get_policy_state_dict(), './checkpoints/model_info_5_moving_landmarks_2.pth')
 
+    os.makedirs('logs', exist_ok=True)
     plt.figure()
     plt.plot(np.mean(reward_list, axis=1), 'b-', label='Average')
     plt.plot(np.mean(reward_list, axis=1) + np.std(reward_list, axis=1), 'b--')
@@ -118,26 +149,28 @@ def run_model_based_training(params_filename):
     plt.xlabel("Epoch")
     plt.ylabel("Normalized Reward")
     plt.legend(loc="upper right")
-    plt.show()
+    plt.savefig(os.path.join('logs', f'reward_plot_seed{args.seed}.png'), bbox_inches='tight')
+    plt.close()
 
     plt.figure()
-    plt.plot(np.mean(action_list[:, :, 0], axis=1), 'b-', label='Linear Velocity')
-    plt.plot(np.mean(action_list[:, :, 0], axis=1) + 5 * np.std(action_list[:, :, 0], axis=1), 'b--')
-    plt.plot(np.mean(action_list[:, :, 0], axis=1) - 5 * np.std(action_list[:, :, 0], axis=1), 'b--')
+    plt.plot(np.nanmean(action_list[:, :, 0], axis=1), 'b-', label='Linear Velocity')
+    plt.plot(np.nanmean(action_list[:, :, 0], axis=1) + 5 * np.nanstd(action_list[:, :, 0], axis=1), 'b--')
+    plt.plot(np.nanmean(action_list[:, :, 0], axis=1) - 5 * np.nanstd(action_list[:, :, 0], axis=1), 'b--')
 
-    plt.plot(np.mean(action_list[:, :, 1], axis=1), 'r-', label='Angular Velocity')
-    plt.plot(np.mean(action_list[:, :, 1], axis=1) + 5 * np.std(action_list[:, :, 1], axis=1), 'r--')
-    plt.plot(np.mean(action_list[:, :, 1], axis=1) - 5 * np.std(action_list[:, :, 1], axis=1), 'r--')
+    plt.plot(np.nanmean(action_list[:, :, 1], axis=1), 'r-', label='Angular Velocity')
+    plt.plot(np.nanmean(action_list[:, :, 1], axis=1) + 5 * np.nanstd(action_list[:, :, 1], axis=1), 'r--')
+    plt.plot(np.nanmean(action_list[:, :, 1], axis=1) - 5 * np.nanstd(action_list[:, :, 1], axis=1), 'r--')
 
     plt.legend(loc="upper right")
     plt.xlabel("Epoch")
-    plt.show()
+    plt.savefig(os.path.join('logs', f'action_plot_seed{args.seed}.png'), bbox_inches='tight')
+    plt.close()
 
     agent.eval_policy()
     for i in range(num_test_trials):
         mu, v, x, done = env.reset()
+        agent.reset_estimate_mu(mu)
         agent.reset_agent_info()
-        agent.reset_estimate_mu()
         env.render()
         while not done:
             action = agent.plan(v, x)

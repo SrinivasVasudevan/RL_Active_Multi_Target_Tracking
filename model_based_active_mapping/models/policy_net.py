@@ -7,10 +7,12 @@ class PolicyNet(nn.Module):
 
     def __init__(self,
                  input_dim: int,
-                 policy_dim: int = 2):
+                 policy_dim: int = 2,
+                 num_robots: int = 1):
 
         super(PolicyNet, self).__init__()
 
+        self._num_robots = num_robots
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
 
@@ -52,9 +54,19 @@ class PolicyNet(nn.Module):
 
         action = self.pi(observation)
 
-        if action.size()[0] == 1:
-            action = action.flatten()
+        if action.dim() == 1:
+            action = action[None, :]
 
-        scaled_action = torch.hstack(((1 + action[0]) / 2 * 1.0, action[1] * 0.1))
+        num_pairs = action.shape[-1] // 2
+        action_pairs = action.view(action.shape[0], num_pairs, 2)
+        scaled_linear = (1 + action_pairs[..., 0]) / 2 * 1.0
+        scaled_angular = action_pairs[..., 1] * 0.1
+        scaled_action = torch.stack((scaled_linear, scaled_angular), dim=-1)
+
+        if scaled_action.shape[0] == 1:
+            scaled_action = scaled_action[0]
+
+        if scaled_action.dim() == 2 and scaled_action.shape[0] == 1:
+            return scaled_action[0]
 
         return scaled_action

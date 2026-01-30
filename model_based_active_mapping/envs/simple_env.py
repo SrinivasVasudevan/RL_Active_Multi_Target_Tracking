@@ -48,14 +48,16 @@ class SimpleEnv:
         self._video_frame_size = None
 
     def reset(self):
-        mu = (torch.rand((self._num_landmarks, 2)) - 0.5) * self._env_size
-
-        landmark_motion_bias = (torch.rand(2) - 0.5) * 2
-        v = (torch.rand((self._num_landmarks, 2)) + landmark_motion_bias - 0.5) * self._landmark_motion_scale
-
         x = torch.empty(3)
         x[:2] = (torch.rand(2) - 0.5) * self._env_size
         x[2] = (torch.rand(1) * 2 - 1) * torch.pi
+
+        num_clusters = min(2, self._num_landmarks)
+        min_robot_dist = 0.3 * torch.min(self._env_size)
+        mu = self._generate_clusters(self._num_landmarks, num_clusters, self._env_size, x, min_robot_dist)
+
+        landmark_motion_bias = (torch.rand(2) - 0.5) * 2
+        v = (torch.rand((self._num_landmarks, 2)) + landmark_motion_bias - 0.5) * self._landmark_motion_scale
 
         self._mu_real = mu
         self._v = v
@@ -70,6 +72,47 @@ class SimpleEnv:
         self._reset_video_state()
 
         return self._mu_real, v, x, False
+
+    def _generate_clusters(self, num_landmarks, num_clusters, env_size, robot_pose, min_robot_dist):
+        centers = torch.zeros((num_clusters, 2))
+        env_half = env_size * 0.5
+        robot_xy = robot_pose[:2]
+        min_center_sep = min_robot_dist * 0.5
+
+        for i in range(num_clusters):
+            best_center = None
+            best_min_dist = -1.0
+            for _ in range(50):
+                candidate = (torch.rand(2) - 0.5) * env_size
+                d_to_robot = torch.linalg.norm(robot_xy - candidate).item()
+
+                if i > 0:
+                    d_to_centers = torch.linalg.norm(centers[:i] - candidate, dim=1)
+                    if d_to_centers.min().item() < min_center_sep:
+                        continue
+
+                if d_to_robot >= min_robot_dist:
+                    best_center = candidate
+                    break
+
+                if d_to_robot > best_min_dist:
+                    best_min_dist = d_to_robot
+                    best_center = candidate
+
+            centers[i] = best_center if best_center is not None else torch.clamp(candidate, -env_half, env_half)
+
+        mu = torch.zeros((num_landmarks, 2))
+        points_per_cluster = num_landmarks // num_clusters
+        remainder = num_landmarks % num_clusters
+        start_idx = 0
+        for i in range(num_clusters):
+            count = points_per_cluster + (1 if i < remainder else 0)
+            cluster_points = centers[i] + torch.randn((count, 2)) * (env_size[0] / 15.0)
+            mu[start_idx:start_idx + count] = cluster_points
+            start_idx += count
+
+        mu = torch.clamp(mu, -env_half, env_half)
+        return mu
 
     def step(self, action: tensor) -> Tuple[tensor, tensor, tensor, bool]:
         self._x = SE2_kinematics(self._x, action, self._tau)
@@ -303,14 +346,16 @@ class SimpleEnvAtt:
         self._num_landmarks = torch.randint(3, 8, (1, )).item()
         self._env_size = tensor([self._num_landmarks * 4, self._num_landmarks * 4])
         self._horizon = self._num_landmarks * 5
-        mu = (torch.rand((self._num_landmarks, 2)) - 0.5) * self._env_size
-
-        landmark_motion_bias = (torch.rand(2) - 0.5) * 1.6
-        v = (torch.rand((self._num_landmarks, 2)) - 0.5) * self._landmark_motion_scale + landmark_motion_bias
-
         x = torch.empty(3)
         x[:2] = (torch.rand(2) - 0.5) * self._env_size * 1.25
         x[2] = (torch.rand(1) * 2 - 1) * torch.pi
+
+        num_clusters = min(2, self._num_landmarks)
+        min_robot_dist = 0.3 * torch.min(self._env_size)
+        mu = self._generate_clusters(self._num_landmarks, num_clusters, self._env_size, x, min_robot_dist)
+
+        landmark_motion_bias = (torch.rand(2) - 0.5) * 1.6
+        v = (torch.rand((self._num_landmarks, 2)) - 0.5) * self._landmark_motion_scale + landmark_motion_bias
 
         self._mu_real = mu
         self._v = v
@@ -325,6 +370,47 @@ class SimpleEnvAtt:
         self._reset_video_state()
 
         return self._mu_real, v, x, False
+
+    def _generate_clusters(self, num_landmarks, num_clusters, env_size, robot_pose, min_robot_dist):
+        centers = torch.zeros((num_clusters, 2))
+        env_half = env_size * 0.5
+        robot_xy = robot_pose[:2]
+        min_center_sep = min_robot_dist * 0.5
+
+        for i in range(num_clusters):
+            best_center = None
+            best_min_dist = -1.0
+            for _ in range(50):
+                candidate = (torch.rand(2) - 0.5) * env_size
+                d_to_robot = torch.linalg.norm(robot_xy - candidate).item()
+
+                if i > 0:
+                    d_to_centers = torch.linalg.norm(centers[:i] - candidate, dim=1)
+                    if d_to_centers.min().item() < min_center_sep:
+                        continue
+
+                if d_to_robot >= min_robot_dist:
+                    best_center = candidate
+                    break
+
+                if d_to_robot > best_min_dist:
+                    best_min_dist = d_to_robot
+                    best_center = candidate
+
+            centers[i] = best_center if best_center is not None else torch.clamp(candidate, -env_half, env_half)
+
+        mu = torch.zeros((num_landmarks, 2))
+        points_per_cluster = num_landmarks // num_clusters
+        remainder = num_landmarks % num_clusters
+        start_idx = 0
+        for i in range(num_clusters):
+            count = points_per_cluster + (1 if i < remainder else 0)
+            cluster_points = centers[i] + torch.randn((count, 2)) * (env_size[0] / 15.0)
+            mu[start_idx:start_idx + count] = cluster_points
+            start_idx += count
+
+        mu = torch.clamp(mu, -env_half, env_half)
+        return mu
 
     def step(self, action: tensor) -> Tuple[tensor, tensor, tensor, bool]:
         self._x = SE2_kinematics(self._x, action, self._tau)

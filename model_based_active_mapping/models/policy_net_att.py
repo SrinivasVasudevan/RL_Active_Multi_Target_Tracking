@@ -7,13 +7,18 @@ class PolicyNetAtt(nn.Module):
 
     def __init__(self,
                  input_dim: int,
-                 policy_dim: int = 2):
+                 policy_dim: int = 2,
+                 num_other_robots: int = 0,
+                 num_robots: int = 1):
 
         super(PolicyNetAtt, self).__init__()
 
-        self.num_landmark = int((input_dim - 3) / 5)
+        self.num_other_robots = num_other_robots
+        self._agent_pos_dim = 3 + 3 * num_other_robots
+        self.num_landmark = int((input_dim - self._agent_pos_dim) / 5)
+        self._num_robots = num_robots
 
-        self.agent_pos_fc1_pi = nn.Linear(3, 32)
+        self.agent_pos_fc1_pi = nn.Linear(self._agent_pos_dim, 32)
         self.agent_pos_fc2_pi = nn.Linear(32, 32)
         self.landmark_fc1_pi = nn.Linear(4, 64)
         self.landmark_fc2_pi = nn.Linear(64, 32)
@@ -59,13 +64,13 @@ class PolicyNetAtt(nn.Module):
             observation = observation[None, :]
 
         # compute the policy
-        # embeddings of agent's position
-        agent_pos_embedding = self.relu(self.agent_pos_fc1_pi(observation[:, :3]))
+        # embeddings of agent's position and other robots (relative)
+        agent_pos_embedding = self.relu(self.agent_pos_fc1_pi(observation[:, :self._agent_pos_dim]))
         agent_pos_embedding = self.relu(self.agent_pos_fc2_pi(agent_pos_embedding))
 
         # embeddings of landmarkss
-        info_vector = observation[:, 3: 3 + 2 * self.num_landmark]
-        estimated_landmark_pos = observation[:, 3 + 2 * self.num_landmark: - self.num_landmark]
+        info_vector = observation[:, self._agent_pos_dim: self._agent_pos_dim + 2 * self.num_landmark]
+        estimated_landmark_pos = observation[:, self._agent_pos_dim + 2 * self.num_landmark: - self.num_landmark]
         landmark_info = torch.cat((estimated_landmark_pos.reshape(observation.size()[0], self.num_landmark, 2),
                                    info_vector.reshape(observation.size()[0], self.num_landmark, 2)), 2)
         landmark_embedding = self.relu(self.landmark_fc1_pi(landmark_info))
@@ -86,9 +91,19 @@ class PolicyNetAtt(nn.Module):
         action = self.tanh(self.action_fc1_pi(info_embedding))
         action = self.tanh(self.action_fc2_pi(action))
 
-        if action.size()[0] == 1:
-            action = action.flatten()
+        if action.dim() == 1:
+            action = action[None, :]
 
-        scaled_action = torch.hstack(((1 + action[0]) * 2.0, action[1] * torch.pi/3))
+        num_pairs = action.shape[-1] // 2
+        action_pairs = action.view(action.shape[0], num_pairs, 2)
+        scaled_linear = (1 + action_pairs[..., 0]) * 2.0
+        scaled_angular = action_pairs[..., 1] * torch.pi / 3
+        scaled_action = torch.stack((scaled_linear, scaled_angular), dim=-1)
+
+        if scaled_action.shape[1] == 1:
+            scaled_action = scaled_action.squeeze(1)
+
+        if scaled_action.shape[0] == 1:
+            return scaled_action[0]
 
         return scaled_action

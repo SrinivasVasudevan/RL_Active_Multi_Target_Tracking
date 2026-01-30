@@ -9,7 +9,8 @@ from utilities.utils import landmark_motion, triangle_SDF, get_transformation, p
 
 class ModelBasedAgent:
 
-    def __init__(self, num_landmarks, init_info, A, B, W, radius, psi, kappa, V, lr, num_robots=2):
+    def __init__(self, num_landmarks, init_info, A, B, W, radius, psi, kappa, V, lr, num_robots=2,
+                 reward_weights=None, reward_clip=1.0):
         self._init_info = init_info
         self._info = None
 
@@ -24,6 +25,27 @@ class ModelBasedAgent:
         self._V = V
         self._inv_V = V ** (-1)
 
+        weights = {
+            'persistence': 1.0,
+            'loss': 1.0,
+            'overlap': 0.5,
+            'info_gain': 0.1,
+        }
+        if reward_weights is not None:
+            weights.update(reward_weights)
+        self._persistence_weight = float(weights['persistence'])
+        self._loss_weight = float(weights['loss'])
+        self._overlap_weight = float(weights['overlap'])
+        self._info_gain_weight = float(weights['info_gain'])
+        self._reward_clip = float(reward_clip)
+        self._log_epsilon = 1e-6
+
+        self._prev_visible = None
+        self._prev_owner = None
+        self._episode_reward = None
+        self._reward_steps = 0
+        self._accumulated_info_gain = None
+
         # input_dim = num_landmarks * 4 + 3
         input_dim = num_landmarks * 4 + 3 * self._num_robots
         self._policy = PolicyNet(input_dim=input_dim, policy_dim=2 * self._num_robots, num_robots=self._num_robots)
@@ -32,9 +54,84 @@ class ModelBasedAgent:
 
     def reset_agent_info(self):
         self._info = self._init_info * torch.ones((self._num_landmarks, 2))
+        self._reset_reward_tracking(self._info.device)
 
     def reset_estimate_mu(self, mu_real):
         self._mu_update = mu_real + torch.normal(mean=torch.zeros(self._num_landmarks, 2), std=torch.sqrt(self._V))  # with the shape of (num_landmarks, 2)
+
+    def _reset_reward_tracking(self, device):
+        self._prev_visible = None
+        self._prev_owner = None
+        self._episode_reward = torch.tensor(0.0, device=device)
+        self._reward_steps = 0
+        self._accumulated_info_gain = torch.tensor(0.0, device=device)
+
+    def _assign_target_owners(self, mu_real, x, visible, prev_owner):
+        num_robots = x.size(0)
+        num_landmarks = mu_real.size(0)
+        device = mu_real.device
+        owner = torch.full((num_landmarks,), -1, dtype=torch.long, device=device)
+
+        if prev_owner is not None:
+            prev_owner = prev_owner.to(device)
+            valid_prev = prev_owner >= 0
+            if valid_prev.any():
+                target_idx = torch.arange(num_landmarks, device=device)[valid_prev]
+                prev_r = prev_owner[valid_prev]
+                still_visible = visible[prev_r, target_idx]
+                if still_visible.any():
+                    owner[target_idx[still_visible]] = prev_r[still_visible]
+
+        unassigned = owner < 0
+        if unassigned.any() and num_robots > 0:
+            target_idx = torch.arange(num_landmarks, device=device)[unassigned]
+            dx = mu_real[target_idx, 0].unsqueeze(0) - x[:, 0].unsqueeze(1)
+            dy = mu_real[target_idx, 1].unsqueeze(0) - x[:, 1].unsqueeze(1)
+            dist2 = dx * dx + dy * dy
+            vis_sub = visible[:, target_idx]
+            dist2 = dist2.masked_fill(~vis_sub, float('inf'))
+            min_dist, min_idx = dist2.min(dim=0)
+            visible_any = torch.isfinite(min_dist)
+            if visible_any.any():
+                owner[target_idx[visible_any]] = min_idx[visible_any]
+
+        return owner
+
+    def _update_reward_tracking(self, mu_real, x, visible):
+        visible_d = visible.detach()
+        mu_real_d = mu_real.detach()
+        x_d = x.detach()
+        num_robots = x_d.size(0)
+        num_landmarks = mu_real_d.size(0)
+
+        if self._prev_visible is None:
+            self._prev_visible = visible_d
+            self._prev_owner = self._assign_target_owners(mu_real_d, x_d, visible_d, None).detach()
+            return
+
+        curr_owner = self._assign_target_owners(mu_real_d, x_d, visible_d, self._prev_owner).detach()
+        curr_any = visible_d.any(dim=0)
+        prev_any = self._prev_visible.any(dim=0)
+
+        lost = prev_any & (~curr_any)
+        persistence = (curr_owner >= 0) & (self._prev_owner == curr_owner)
+
+        overlap_excess = (visible_d.sum(dim=0) - 1).clamp(min=0)
+
+        persist_frac = persistence.to(mu_real_d.dtype).sum() / max(num_landmarks, 1)
+        loss_frac = lost.to(mu_real_d.dtype).sum() / max(num_landmarks, 1)
+        overlap_den = max(num_landmarks * max(num_robots - 1, 1), 1)
+        overlap_frac = overlap_excess.to(mu_real_d.dtype).sum() / overlap_den
+
+        step_reward = (self._persistence_weight * persist_frac) - (self._loss_weight * loss_frac) - (
+            self._overlap_weight * overlap_frac)
+        step_reward = step_reward.clamp(min=-self._reward_clip, max=self._reward_clip)
+
+        self._episode_reward = self._episode_reward + step_reward
+        self._reward_steps += 1
+
+        self._prev_visible = visible_d
+        self._prev_owner = curr_owner
 
     def eval_policy(self):
         self._policy.eval()
@@ -96,13 +193,14 @@ class ModelBasedAgent:
         q_real = torch.stack((dx * c + dy * s,
                               -dx * s + dy * c), dim=2)
         sdf_real = triangle_SDF(q_real, self._psi, self._radius).reshape(num_robots, self._num_landmarks)
-        visible = (sdf_real <= 0).unsqueeze(-1)
+        visible = (sdf_real <= 0)
+        self._update_reward_tracking(mu_real, x, visible)
 
         noise = torch.normal(mean=torch.zeros((num_robots, self._num_landmarks, 2), device=mu_real.device, dtype=mu_real.dtype),
                              std=torch.sqrt(self._V))
         z = mu_real.unsqueeze(0) + noise
 
-        weights = visible.to(mu_real.dtype)
+        weights = visible.unsqueeze(-1).to(mu_real.dtype)
         sum_weights = weights.sum(dim=0)
 
         info_prior = self._info
@@ -122,6 +220,9 @@ class ModelBasedAgent:
         weights_info = (1 - phi(sdf_update, self._kappa))
         M_total = weights_info.sum(dim=0).unsqueeze(1) * self._inv_V
         self._info = self._info + M_total
+        info_gain = torch.sum(torch.log(self._info.clamp_min(self._log_epsilon))) - torch.sum(
+            torch.log(info_prior.clamp_min(self._log_epsilon)))
+        self._accumulated_info_gain = self._accumulated_info_gain + info_gain
         self._mu_predict = self._mu_update
 
     # def update_policy(self, debug=False):
@@ -162,10 +263,14 @@ class ModelBasedAgent:
         self._policy_optimizer.zero_grad()
 
     def update_policy_grad(self, train=True):
-        reward = - torch.sum(torch.log(self._info))
-        if train == True:
-            reward.backward()
-        return -reward.item()
+        avg_reward = self._episode_reward
+        if self._reward_steps > 0:
+            avg_reward = self._episode_reward / self._reward_steps
+        total_objective = (self._info_gain_weight * self._accumulated_info_gain) + avg_reward
+        loss = -total_objective
+        if train == True and total_objective.requires_grad:
+            loss.backward()
+        return total_objective.item()
 
     # def update_policy_grad(self, mu, x):
     #     reward = ((x[:2] - mu)**2).sum()
@@ -202,7 +307,8 @@ class ModelBasedAgent:
 
 class ModelBasedAgentAtt:
 
-    def __init__(self, max_num_landmarks, init_info, A, B, W, radius, psi, kappa, V, lr, num_robots=2):
+    def __init__(self, max_num_landmarks, init_info, A, B, W, radius, psi, kappa, V, lr, num_robots=2,
+                 reward_weights=None, reward_clip=1.0):
         self._init_info = init_info
         self._info = None
 
@@ -217,6 +323,27 @@ class ModelBasedAgentAtt:
         self._V = V
         self._inv_V = V ** (-1)
 
+        weights = {
+            'persistence': 1.0,
+            'loss': 1.0,
+            'overlap': 0.5,
+            'info_gain': 0.1,
+        }
+        if reward_weights is not None:
+            weights.update(reward_weights)
+        self._persistence_weight = float(weights['persistence'])
+        self._loss_weight = float(weights['loss'])
+        self._overlap_weight = float(weights['overlap'])
+        self._info_gain_weight = float(weights['info_gain'])
+        self._reward_clip = float(reward_clip)
+        self._log_epsilon = 1e-6
+
+        self._prev_visible = None
+        self._prev_owner = None
+        self._episode_reward = None
+        self._reward_steps = 0
+        self._accumulated_info_gain = None
+
         # input_dim = num_landmarks * 4 + 3
         input_dim = max_num_landmarks * 5 + 3 * self._num_robots
         self._policy = PolicyNetAtt(input_dim=input_dim, policy_dim=2,
@@ -226,12 +353,87 @@ class ModelBasedAgentAtt:
 
     def reset_agent_info(self):
         self._info = self._init_info * torch.ones((self._num_landmarks, 2))
+        self._reset_reward_tracking(self._info.device)
 
     def reset_estimate_mu(self, mu_real):
         self._num_landmarks = mu_real.size()[0]
         self._mu_update = mu_real + torch.normal(mean=torch.zeros(self._num_landmarks, 2), std=torch.sqrt(self._V))  # with the shape of (num_landmarks, 2)
         self._padding = torch.zeros(2 * (self._max_num_landmarks - self._num_landmarks))
         self._mask = torch.tensor([True] * self._num_landmarks + [False] * (self._max_num_landmarks - self._num_landmarks))
+
+    def _reset_reward_tracking(self, device):
+        self._prev_visible = None
+        self._prev_owner = None
+        self._episode_reward = torch.tensor(0.0, device=device)
+        self._reward_steps = 0
+        self._accumulated_info_gain = torch.tensor(0.0, device=device)
+
+    def _assign_target_owners(self, mu_real, x, visible, prev_owner):
+        num_robots = x.size(0)
+        num_landmarks = mu_real.size(0)
+        device = mu_real.device
+        owner = torch.full((num_landmarks,), -1, dtype=torch.long, device=device)
+
+        if prev_owner is not None:
+            prev_owner = prev_owner.to(device)
+            valid_prev = prev_owner >= 0
+            if valid_prev.any():
+                target_idx = torch.arange(num_landmarks, device=device)[valid_prev]
+                prev_r = prev_owner[valid_prev]
+                still_visible = visible[prev_r, target_idx]
+                if still_visible.any():
+                    owner[target_idx[still_visible]] = prev_r[still_visible]
+
+        unassigned = owner < 0
+        if unassigned.any() and num_robots > 0:
+            target_idx = torch.arange(num_landmarks, device=device)[unassigned]
+            dx = mu_real[target_idx, 0].unsqueeze(0) - x[:, 0].unsqueeze(1)
+            dy = mu_real[target_idx, 1].unsqueeze(0) - x[:, 1].unsqueeze(1)
+            dist2 = dx * dx + dy * dy
+            vis_sub = visible[:, target_idx]
+            dist2 = dist2.masked_fill(~vis_sub, float('inf'))
+            min_dist, min_idx = dist2.min(dim=0)
+            visible_any = torch.isfinite(min_dist)
+            if visible_any.any():
+                owner[target_idx[visible_any]] = min_idx[visible_any]
+
+        return owner
+
+    def _update_reward_tracking(self, mu_real, x, visible):
+        visible_d = visible.detach()
+        mu_real_d = mu_real.detach()
+        x_d = x.detach()
+        num_robots = x_d.size(0)
+        num_landmarks = mu_real_d.size(0)
+
+        if self._prev_visible is None:
+            self._prev_visible = visible_d
+            self._prev_owner = self._assign_target_owners(mu_real_d, x_d, visible_d, None).detach()
+            return
+
+        curr_owner = self._assign_target_owners(mu_real_d, x_d, visible_d, self._prev_owner).detach()
+        curr_any = visible_d.any(dim=0)
+        prev_any = self._prev_visible.any(dim=0)
+
+        lost = prev_any & (~curr_any)
+        persistence = (curr_owner >= 0) & (self._prev_owner == curr_owner)
+
+        overlap_excess = (visible_d.sum(dim=0) - 1).clamp(min=0)
+
+        persist_frac = persistence.to(mu_real_d.dtype).sum() / max(num_landmarks, 1)
+        loss_frac = lost.to(mu_real_d.dtype).sum() / max(num_landmarks, 1)
+        overlap_den = max(num_landmarks * max(num_robots - 1, 1), 1)
+        overlap_frac = overlap_excess.to(mu_real_d.dtype).sum() / overlap_den
+
+        step_reward = (self._persistence_weight * persist_frac) - (self._loss_weight * loss_frac) - (
+            self._overlap_weight * overlap_frac)
+        step_reward = step_reward.clamp(min=-self._reward_clip, max=self._reward_clip)
+
+        self._episode_reward = self._episode_reward + step_reward
+        self._reward_steps += 1
+
+        self._prev_visible = visible_d
+        self._prev_owner = curr_owner
 
     def eval_policy(self):
         self._policy.eval()
@@ -303,13 +505,14 @@ class ModelBasedAgentAtt:
         q_real = torch.stack((dx * c + dy * s,
                               -dx * s + dy * c), dim=2)
         sdf_real = triangle_SDF(q_real, self._psi, self._radius).reshape(num_robots, self._num_landmarks)
-        visible = (sdf_real <= 0).unsqueeze(-1)
+        visible = (sdf_real <= 0)
+        self._update_reward_tracking(mu_real, x, visible)
 
         noise = torch.normal(mean=torch.zeros((num_robots, self._num_landmarks, 2), device=mu_real.device, dtype=mu_real.dtype),
                              std=torch.sqrt(self._V))
         z = mu_real.unsqueeze(0) + noise
 
-        weights = visible.to(mu_real.dtype)
+        weights = visible.unsqueeze(-1).to(mu_real.dtype)
         sum_weights = weights.sum(dim=0)
 
         info_prior = self._info
@@ -329,16 +532,23 @@ class ModelBasedAgentAtt:
         weights_info = (1 - phi(sdf_update, self._kappa))
         M_total = weights_info.sum(dim=0).unsqueeze(1) * self._inv_V
         self._info = self._info + M_total
+        info_gain = torch.sum(torch.log(self._info.clamp_min(self._log_epsilon))) - torch.sum(
+            torch.log(info_prior.clamp_min(self._log_epsilon)))
+        self._accumulated_info_gain = self._accumulated_info_gain + info_gain
         self._mu_predict = self._mu_update
 
     def set_policy_grad_to_zero(self):
         self._policy_optimizer.zero_grad()
 
     def update_policy_grad(self, train=True):
-        reward = - torch.sum(torch.log(self._info))
-        if train == True:
-            reward.backward()
-        return -reward.item()
+        avg_reward = self._episode_reward
+        if self._reward_steps > 0:
+            avg_reward = self._episode_reward / self._reward_steps
+        total_objective = (self._info_gain_weight * self._accumulated_info_gain) + avg_reward
+        loss = -total_objective
+        if train == True and total_objective.requires_grad:
+            loss.backward()
+        return total_objective.item()
 
     def policy_step(self, debug=False):
         if debug:

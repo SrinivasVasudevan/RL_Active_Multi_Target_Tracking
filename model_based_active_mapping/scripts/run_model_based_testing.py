@@ -2,13 +2,17 @@ import os
 import sys
 import yaml
 import json
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(repo_root)
+sys.path.append(os.path.join(repo_root, "MRMT"))
 import torch
 import argparse
 import numpy as np
+import cv2
 
 from torch import tensor
 from envs.simple_env import SimpleEnv, SimpleEnvAtt
+from multi_robot_env import MultiRobotEnv
 from agents.model_based_agent import ModelBasedAgent, ModelBasedAgentAtt
 from utilities.utils import triangle_SDF
 
@@ -17,6 +21,9 @@ parser.add_argument('--network-type', type=int, default=1, help='by default, it 
                                                                 'otherwise, it would be MLP')
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--model-path', type=str, default=None, help='Path to the .pth model checkpoint')
+parser.add_argument('--num-robots', type=int, default=2)
+parser.add_argument('--num-clusters', type=int, default=2)
+parser.add_argument('--clustering-prob', type=float, default=0.65)
 args = parser.parse_args()
 torch.manual_seed(args.seed)
 
@@ -278,12 +285,25 @@ def print_aggregated_summary(aggregated, num_robots):
 
 
 def compute_fov_mask(mu_real, x, psi, radius):
-    q = torch.vstack((
-        (mu_real[:, 0] - x[0]) * torch.cos(x[2]) + (mu_real[:, 1] - x[1]) * torch.sin(x[2]),
-        (x[0] - mu_real[:, 0]) * torch.sin(x[2]) + (mu_real[:, 1] - x[1]) * torch.cos(x[2])
-    )).T
-    sdf = triangle_SDF(q, psi, radius)
-    return sdf <= 0
+    if len(x.size()) == 1:
+        x = x[None, :]
+    masks = []
+    for r in range(x.size(0)):
+        q = torch.vstack((
+            (mu_real[:, 0] - x[r, 0]) * torch.cos(x[r, 2]) + (mu_real[:, 1] - x[r, 1]) * torch.sin(x[r, 2]),
+            (x[r, 0] - mu_real[:, 0]) * torch.sin(x[r, 2]) + (mu_real[:, 1] - x[r, 1]) * torch.cos(x[r, 2])
+        )).T
+        sdf = triangle_SDF(q, psi, radius)
+        masks.append(sdf <= 0)
+    return torch.stack(masks)
+
+def get_frame(env, current_fov_mask=None):
+    if current_fov_mask is not None:
+        try:
+            return env.get_current_frame(current_fov_mask=current_fov_mask)
+        except TypeError:
+            return env.get_current_frame()
+    return env.get_current_frame()
 
 def run_model_based_testing(params_filename):
     assert os.path.exists(params_filename)
@@ -326,16 +346,27 @@ def run_model_based_testing(params_filename):
     batch_size = params['batch_size']
     num_test_trials = params['num_test_trials']
 
+    use_multi = args.num_robots > 1
     if args.network_type == 1:
-        env = SimpleEnvAtt(max_num_landmarks=max_num_landmarks, horizon=horizon, tau=tau,
-                           A=A, B=B, V=V, W=W, landmark_motion_scale=landmark_motion_scale, psi=psi, radius=radius)
+        if use_multi:
+            env = MultiRobotEnv(num_robots=args.num_robots, max_num_landmarks=max_num_landmarks, horizon=horizon, tau=tau,
+                                A=A, B=B, V=V, W=W, landmark_motion_scale=landmark_motion_scale, psi=psi, radius=radius,
+                                num_clusters=args.num_clusters, clustering_prob=args.clustering_prob)
+        else:
+            env = SimpleEnvAtt(max_num_landmarks=max_num_landmarks, horizon=horizon, tau=tau,
+                               A=A, B=B, V=V, W=W, landmark_motion_scale=landmark_motion_scale, psi=psi, radius=radius)
         agent = ModelBasedAgentAtt(max_num_landmarks=max_num_landmarks, init_info=init_info, A=A, B=B, W=W,
-                                   radius=radius, psi=psi, kappa=kappa, V=V, lr=lr)
+                                   radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots)
     else:
-        env = SimpleEnv(num_landmarks=num_landmarks, horizon=horizon, width=env_width, height=env_height, tau=tau,
-                        A=A, B=B, V=V, W=W, landmark_motion_scale=landmark_motion_scale, psi=psi, radius=radius)
+        if use_multi:
+            env = MultiRobotEnv(num_robots=args.num_robots, max_num_landmarks=max_num_landmarks, horizon=horizon, tau=tau,
+                                A=A, B=B, V=V, W=W, landmark_motion_scale=landmark_motion_scale, psi=psi, radius=radius,
+                                num_clusters=args.num_clusters, clustering_prob=args.clustering_prob)
+        else:
+            env = SimpleEnv(num_landmarks=num_landmarks, horizon=horizon, width=env_width, height=env_height, tau=tau,
+                            A=A, B=B, V=V, W=W, landmark_motion_scale=landmark_motion_scale, psi=psi, radius=radius)
         agent = ModelBasedAgent(num_landmarks=num_landmarks, init_info=init_info, A=A, B=B, W=W,
-                                radius=radius, psi=psi, kappa=kappa, V=V, lr=lr)
+                                radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots)
 
     model_path = args.model_path
     if model_path is None:
@@ -350,7 +381,8 @@ def run_model_based_testing(params_filename):
 
     agent.eval_policy()
     results_dir = './test_results'
-    os.makedirs(results_dir, exist_ok=True)
+    videos_dir = os.path.join(results_dir, 'videos')
+    os.makedirs(videos_dir, exist_ok=True)
     overall_avg_targets = []
     all_trail_summaries = []
     model_name = os.path.splitext(os.path.basename(model_path))[0]
@@ -359,17 +391,27 @@ def run_model_based_testing(params_filename):
         num_landmarks = mu_real.size()[0]
         agent.reset_estimate_mu(mu_real)
         agent.reset_agent_info()
-        stats = TrackingStatistics(num_robots=1, num_landmarks=num_landmarks)
+        stats = TrackingStatistics(num_robots=args.num_robots, num_landmarks=num_landmarks)
         episode_targets_tracked = []
-        env.render()
+        frames = []
         while not done:
             action = agent.plan(v, x)
             mu_real, v, x, done = env.step(action)
             agent.update_info_mu(mu_real, x)
             current_fov_mask = compute_fov_mask(mu_real, x, psi, radius)
-            stats.update(current_fov_mask.unsqueeze(0))
-            episode_targets_tracked.append(int(current_fov_mask.sum().item()))
-            env.render()
+            stats.update(current_fov_mask)
+            episode_targets_tracked.append(int(current_fov_mask.any(dim=0).sum().item()))
+            frame = get_frame(env, current_fov_mask=current_fov_mask)
+            frames.append(frame)
+
+        if frames:
+            height, width, layers = frames[0].shape
+            video_name = os.path.join(videos_dir, f'{model_name}_seed{args.seed}_episode_{i+1:03d}.avi')
+            fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+            video = cv2.VideoWriter(video_name, fourcc, 5, (width, height))
+            for frame in frames:
+                video.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+            video.release()
 
         reward = agent.update_policy_grad(False) / num_landmarks
         print("num_landmark:", num_landmarks, "reward:", reward)
@@ -384,7 +426,7 @@ def run_model_based_testing(params_filename):
         print(f"\n  > Episode Complete. Avg Unique Targets Tracked: {avg_targets:.2f}")
 
     aggregated = aggregate_by_target_count(all_trail_summaries)
-    print_aggregated_summary(aggregated, num_robots=1)
+    print_aggregated_summary(aggregated, num_robots=args.num_robots)
 
     print("\n" + "=" * 80)
     print("TESTING SUMMARY (Legacy)")
@@ -397,6 +439,7 @@ def run_model_based_testing(params_filename):
         'model_name': model_name,
         'seed': args.seed,
         'network_type': args.network_type,
+        'num_robots': args.num_robots,
         'num_test_trials': num_test_trials,
         'trails': all_trail_summaries,
         'aggregated_by_targets': {str(k): v for k, v in aggregated.items()},

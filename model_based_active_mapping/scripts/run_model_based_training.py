@@ -102,7 +102,7 @@ def run_model_based_training(params_filename):
             env = SimpleEnvAtt(max_num_landmarks=max_num_landmarks, horizon=horizon, tau=tau,
                                A=A, B=B, V=V, W=W, landmark_motion_scale=landmark_motion_scale, psi=psi, radius=radius)
         agent = ModelBasedAgentAtt(max_num_landmarks=max_num_landmarks, init_info=init_info, A=A, B=B, W=W,
-                            radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots)
+                            radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots, uncertainty_threshold=10.0)
     else:
         if use_multi:
             env = MultiRobotEnv(num_robots=args.num_robots, max_num_landmarks=max_num_landmarks, horizon=horizon, tau=tau,
@@ -112,7 +112,7 @@ def run_model_based_training(params_filename):
             env = SimpleEnv(num_landmarks=num_landmarks, horizon=horizon, width=env_width, height=env_height, tau=tau,
                             A=A, B=B, V=V, W=W, landmark_motion_scale=landmark_motion_scale, psi=psi, radius=radius)
         agent = ModelBasedAgent(num_landmarks=num_landmarks, init_info=init_info, A=A, B=B, W=W,
-                            radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots)
+                            radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots, uncertainty_threshold=10.0)
     writer = SummaryWriter('./tensorboard/')
 
     agent.train_policy()

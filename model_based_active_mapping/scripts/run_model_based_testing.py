@@ -397,7 +397,7 @@ def run_model_based_testing(params_filename):
         while not done:
             action = agent.plan(v, x)
             mu_real, v, x, done = env.step(action)
-            agent.update_info_mu(mu_real, x)
+            agent.update_info_mu(mu_real, x, v=v, done=done)
             current_fov_mask = compute_fov_mask(mu_real, x, psi, radius)
             stats.update(current_fov_mask)
             episode_targets_tracked.append(int(current_fov_mask.any(dim=0).sum().item()))

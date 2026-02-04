@@ -102,7 +102,7 @@ def run_model_based_training(params_filename):
             env = SimpleEnvAtt(max_num_landmarks=max_num_landmarks, horizon=horizon, tau=tau,
                                A=A, B=B, V=V, W=W, landmark_motion_scale=landmark_motion_scale, psi=psi, radius=radius)
         agent = ModelBasedAgentAtt(max_num_landmarks=max_num_landmarks, init_info=init_info, A=A, B=B, W=W,
-                            radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots)
+                            radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots, use_action_critic=True)
     else:
         if use_multi:
             env = MultiRobotEnv(num_robots=args.num_robots, max_num_landmarks=max_num_landmarks, horizon=horizon, tau=tau,
@@ -112,15 +112,17 @@ def run_model_based_training(params_filename):
             env = SimpleEnv(num_landmarks=num_landmarks, horizon=horizon, width=env_width, height=env_height, tau=tau,
                             A=A, B=B, V=V, W=W, landmark_motion_scale=landmark_motion_scale, psi=psi, radius=radius)
         agent = ModelBasedAgent(num_landmarks=num_landmarks, init_info=init_info, A=A, B=B, W=W,
-                            radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots)
+                            radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots,use_action_critic=True)
     writer = SummaryWriter('./tensorboard/')
 
     agent.train_policy()
     reward_list = np.empty((max_epoch, batch_size))
     action_list = np.full((max_epoch * batch_size, horizon, args.num_robots, 2), np.nan)
-    best_reward = 1.
+    best_reward = 0.0
     for i in range(max_epoch):
-        agent.set_policy_grad_to_zero()
+        use_action_critic = getattr(agent, "_use_action_critic", True)
+        if not use_action_critic:
+            agent.set_policy_grad_to_zero()
 
         for j in range(batch_size):
             mu_real, v, x, done = env.reset()
@@ -135,14 +137,15 @@ def run_model_based_training(params_filename):
                     action_np = action_np[None, :]
                 action_list[i * batch_size + j, step, :, :] = action_np
                 mu_real, v, x, done = env.step(action)
-                agent.update_info_mu(mu_real, x)
+                agent.update_info_mu(mu_real, x, v=v, done=done)
                 step += 1
 
             reward_list[i, j] = agent.update_policy_grad() / num_landmarks
             writer.add_scalar('Average Reward', reward_list[i, j], i)
             # reward_list[i, j] = agent.update_policy_grad(mu, x) / num_landmarks
 
-        agent.policy_step(debug=False)
+        if not use_action_critic:
+            agent.policy_step(debug=False)
 
         print('Epoch {} finished!'.format(i + 1))
         mean_reward = np.mean(reward_list[i])

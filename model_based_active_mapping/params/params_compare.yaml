@@ -20,7 +20,7 @@ motion:
 init_info: 0.5
 
 FoV:
-  radius: 6
+  radius: 4
   psi: 0.785
   kappa: 0.4
   V:

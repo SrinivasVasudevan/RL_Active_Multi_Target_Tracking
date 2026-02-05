@@ -96,8 +96,8 @@ class PolicyNetAtt(nn.Module):
 
         num_pairs = action.shape[-1] // 2
         action_pairs = action.view(action.shape[0], num_pairs, 2)
-        scaled_linear = (1 + action_pairs[..., 0]) * 2.0
-        scaled_angular = action_pairs[..., 1] * torch.pi / 3
+        scaled_linear = (1 + action_pairs[..., 0]) * 1.0
+        scaled_angular = action_pairs[..., 1] * torch.pi / 6
         scaled_action = torch.stack((scaled_linear, scaled_angular), dim=-1)
 
         if scaled_action.shape[1] == 1:

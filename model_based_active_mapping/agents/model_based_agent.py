@@ -27,9 +27,9 @@ class ModelBasedAgent:
 
         # OPTION 1 REWARD WEIGHTS - Tuned for coverage + persistence
         weights = {
-            'info_gain': 0.3,        # Reduced from your implicit 1.0 to make it less greedy
-            'persistence': 2.0,       # Increased - reward staying on targets
-            'loss': 2.0,             # Penalize dropping targets
+            'info_gain': 0.1,        # Reduced from your implicit 1.0 to make it less greedy
+            'persistence': 3.0,       # Increased - reward staying on targets
+            'loss': 6.0,             # Penalize dropping targets
             'overlap': 0.5,          # Penalize redundant coverage
             'coverage': 3.0,         # NEW: Strong bonus for covering diverse targets
             'tracking_continuity': 1.0,  # NEW: Bonus for sustained tracking
@@ -46,7 +46,7 @@ class ModelBasedAgent:
         self._reward_clip = float(reward_clip)
         self._log_epsilon = 1e-6
         
-        # NEW: Uncertainty threshold for "well-tracked" targets
+        # NOTE: Keep for backward compatibility; coverage now uses FOV visibility only.
         self._uncertainty_threshold = uncertainty_threshold
 
         # Tracking state
@@ -113,16 +113,6 @@ class ModelBasedAgent:
 
         return owner
 
-    def _compute_target_uncertainty(self):
-        """
-        Compute uncertainty for each target as trace of inverse info matrix.
-        Lower values = better tracked.
-        """
-        # Uncertainty is 1/info for each dimension, summed
-        uncertainty = (1.0 / (self._info[:, 0].clamp_min(self._log_epsilon)) + 
-                      1.0 / (self._info[:, 1].clamp_min(self._log_epsilon)))
-        return uncertainty
-
     def _update_reward_tracking(self, mu_real, x, visible):
         visible_d = visible.detach()
         mu_real_d = mu_real.detach()
@@ -164,11 +154,9 @@ class ModelBasedAgent:
         newly_visible = curr_any & (~prev_any)
         self._consecutive_tracking[newly_visible] = 1
 
-        # NEW: Compute coverage metrics
-        uncertainty = self._compute_target_uncertainty()
-        well_tracked = (uncertainty < self._uncertainty_threshold) & curr_any
-        num_well_tracked = well_tracked.to(mu_real_d.dtype).sum()
-        coverage_ratio = num_well_tracked / max(num_landmarks, 1)
+        # Coverage based on visibility (FOV): fraction of targets currently in view
+        num_visible = curr_any.to(mu_real_d.dtype).sum()
+        coverage_ratio = num_visible / max(num_landmarks, 1)
         
         # NEW: Tracking continuity bonus (exponential decay encourages sustained tracking)
         # Decay factor makes longer continuous tracking more valuable
@@ -216,6 +204,7 @@ class ModelBasedAgent:
         q_predict = torch.vstack(((self._mu_predict[:, 0] - x_ref[0]) * torch.cos(x_ref[2]) + (self._mu_predict[:, 1] - x_ref[1]) * torch.sin(x_ref[2]),
                           (x_ref[0] - self._mu_predict[:, 0]) * torch.sin(x_ref[2]) + (self._mu_predict[:, 1] - x_ref[1]) * torch.cos(x_ref[2]))).T
 
+        # net_input = torch.hstack((x, self._info.flatten(), next_mu.flatten()))
         agent_pos_local = torch.zeros(3, device=x.device, dtype=x.dtype)
         other_robots = []
         max_other = min(self._num_robots - 1, x.size(0) - 1)
@@ -237,6 +226,7 @@ class ModelBasedAgent:
             other_robots_input = torch.cat((other_robots_input, torch.zeros(3 * missing, device=x.device, dtype=x.dtype)))
 
         net_input = torch.hstack((agent_pos_local, other_robots_input, self._info.flatten(), q_predict.flatten()))
+        # net_input = q.flatten()
         action = self._policy.forward(net_input)
         return action
 
@@ -406,6 +396,7 @@ class ModelBasedAgentAtt:
         
         self._reward_clip = float(reward_clip)
         self._log_epsilon = 1e-6
+        # NOTE: Keep for backward compatibility; coverage now uses FOV visibility only.
         self._uncertainty_threshold = uncertainty_threshold
 
         self._prev_visible = None
@@ -416,27 +407,22 @@ class ModelBasedAgentAtt:
         self._tracking_history = None
         self._consecutive_tracking = None
 
-        self._padding = torch.zeros(2 * max_num_landmarks)
-        self._mask = torch.ones(max_num_landmarks)
-
-        input_dim = 3 + 3 * (num_robots - 1) + 5 * max_num_landmarks
-        self._policy = PolicyNetAtt(input_dim=input_dim, policy_dim=2 * num_robots, 
-                                    num_other_robots=num_robots - 1, num_robots=num_robots)
+        # input_dim = num_landmarks * 4 + 3
+        input_dim = max_num_landmarks * 5 + 3 * self._num_robots
+        self._policy = PolicyNetAtt(input_dim=input_dim, policy_dim=2,
+                                    num_other_robots=self._num_robots - 1, num_robots=self._num_robots)
 
         self._policy_optimizer = Adam(self._policy.parameters(), lr=lr)
 
     def reset_agent_info(self):
-        self._info = self._init_info * torch.ones((self._max_num_landmarks, 2))
+        self._info = self._init_info * torch.ones((self._num_landmarks, 2))
         self._reset_reward_tracking(self._info.device)
 
     def reset_estimate_mu(self, mu_real):
         self._num_landmarks = mu_real.size()[0]
-        self._mu_update = torch.zeros((self._max_num_landmarks, 2))
-        self._mu_update[:self._num_landmarks, :] = mu_real + torch.normal(mean=torch.zeros(self._num_landmarks, 2), std=torch.sqrt(self._V))
-
-        self._padding = torch.zeros(2 * self._max_num_landmarks)
-        self._mask = torch.zeros(self._max_num_landmarks)
-        self._mask[:self._num_landmarks] = 1
+        self._mu_update = mu_real + torch.normal(mean=torch.zeros(self._num_landmarks, 2), std=torch.sqrt(self._V))  # with the shape of (num_landmarks, 2)
+        self._padding = torch.zeros(2 * (self._max_num_landmarks - self._num_landmarks))
+        self._mask = torch.tensor([True] * self._num_landmarks + [False] * (self._max_num_landmarks - self._num_landmarks))
 
     def _reset_reward_tracking(self, device):
         self._prev_visible = None
@@ -444,8 +430,8 @@ class ModelBasedAgentAtt:
         self._episode_reward = torch.tensor(0.0, device=device)
         self._reward_steps = 0
         self._accumulated_info_gain = torch.tensor(0.0, device=device)
-        self._tracking_history = torch.zeros(self._max_num_landmarks, device=device)
-        self._consecutive_tracking = torch.zeros(self._max_num_landmarks, device=device)
+        self._tracking_history = torch.zeros(self._num_landmarks, device=device)
+        self._consecutive_tracking = torch.zeros(self._num_landmarks, device=device)
 
     def _assign_target_owners(self, mu_real, x, visible, prev_owner):
         num_robots = x.size(0)
@@ -478,12 +464,6 @@ class ModelBasedAgentAtt:
 
         return owner
 
-    def _compute_target_uncertainty(self):
-        """Compute uncertainty only for actual landmarks (not padding)"""
-        uncertainty = (1.0 / (self._info[:self._num_landmarks, 0].clamp_min(self._log_epsilon)) + 
-                      1.0 / (self._info[:self._num_landmarks, 1].clamp_min(self._log_epsilon)))
-        return uncertainty
-
     def _update_reward_tracking(self, mu_real, x, visible):
         visible_d = visible.detach()
         mu_real_d = mu_real.detach()
@@ -496,8 +476,8 @@ class ModelBasedAgentAtt:
             self._prev_visible = visible_d
             self._prev_owner = self._assign_target_owners(mu_real_d, x_d, visible_d, None).detach()
             currently_visible = visible_d.any(dim=0)
-            self._tracking_history[:num_landmarks][currently_visible] += 1
-            self._consecutive_tracking[:num_landmarks][currently_visible] += 1
+            self._tracking_history[currently_visible] += 1
+            self._consecutive_tracking[currently_visible] += 1
             return
 
         curr_owner = self._assign_target_owners(mu_real_d, x_d, visible_d, self._prev_owner).detach()
@@ -506,24 +486,23 @@ class ModelBasedAgentAtt:
 
         lost = prev_any & (~curr_any)
         persistence = (curr_owner >= 0) & (self._prev_owner == curr_owner)
+
         overlap_excess = (visible_d.sum(dim=0) - 1).clamp(min=0)
 
         # Update tracking history
-        self._tracking_history[:num_landmarks][curr_any] += 1
-        self._tracking_history[:num_landmarks][~curr_any] = 0
+        self._tracking_history[curr_any] += 1
+        self._tracking_history[~curr_any] = 0
         
-        self._consecutive_tracking[:num_landmarks][persistence] += 1
-        self._consecutive_tracking[:num_landmarks][~persistence] = 0
+        self._consecutive_tracking[persistence] += 1
+        self._consecutive_tracking[~persistence] = 0
         newly_visible = curr_any & (~prev_any)
-        self._consecutive_tracking[:num_landmarks][newly_visible] = 1
+        self._consecutive_tracking[newly_visible] = 1
 
-        # Coverage metrics
-        uncertainty = self._compute_target_uncertainty()
-        well_tracked = (uncertainty < self._uncertainty_threshold) & curr_any
-        num_well_tracked = well_tracked.to(mu_real_d.dtype).sum()
-        coverage_ratio = num_well_tracked / max(num_landmarks, 1)
+        # Coverage based on visibility (FOV): fraction of targets currently in view
+        num_visible = curr_any.to(mu_real_d.dtype).sum()
+        coverage_ratio = num_visible / max(num_landmarks, 1)
         
-        continuity_bonus = torch.sum(1.0 - torch.exp(-self._consecutive_tracking[:num_landmarks] / 5.0))
+        continuity_bonus = torch.sum(1.0 - torch.exp(-self._consecutive_tracking / 5.0))
         continuity_bonus = continuity_bonus / max(num_landmarks, 1)
 
         persist_frac = persistence.to(mu_real_d.dtype).sum() / max(num_landmarks, 1)
@@ -553,6 +532,9 @@ class ModelBasedAgentAtt:
         self._policy.train()
 
     def plan(self, v, x):
+        # self._mu_predict = torch.clip(landmark_motion(self._mu_update, v, self._A, self._B),
+        #                               min=-tensor([self._num_landmarks, self._num_landmarks]),
+        #                               max=tensor([self._num_landmarks, self._num_landmarks]))
         self._mu_predict = landmark_motion(self._mu_update, v, self._A, self._B)
         self._info = (self._info**(-1) + self._W)**(-1)
 
@@ -625,28 +607,27 @@ class ModelBasedAgentAtt:
         weights = visible.unsqueeze(-1).to(mu_real.dtype)
         sum_weights = weights.sum(dim=0)
 
-        info_prior = self._info[:self._num_landmarks, :]
-        y_prior = info_prior * self._mu_predict[:self._num_landmarks, :]
+        info_prior = self._info
+        y_prior = info_prior * self._mu_predict
         meas_sum = (weights * z).sum(dim=0)
 
         info_post = info_prior + sum_weights * self._inv_V
         info_post_safe = info_post.clamp_min(1e-8)
         y_post = y_prior + meas_sum * self._inv_V
-        self._mu_update[:self._num_landmarks, :] = y_post / info_post_safe
+        self._mu_update = y_post / info_post_safe
 
-        dx_u = self._mu_update[:self._num_landmarks, 0].unsqueeze(0) - x[:, 0].unsqueeze(1)
-        dy_u = self._mu_update[:self._num_landmarks, 1].unsqueeze(0) - x[:, 1].unsqueeze(1)
+        dx_u = self._mu_update[:, 0].unsqueeze(0) - x[:, 0].unsqueeze(1)
+        dy_u = self._mu_update[:, 1].unsqueeze(0) - x[:, 1].unsqueeze(1)
         q_update = torch.stack((dx_u * c + dy_u * s,
                                 -dx_u * s + dy_u * c), dim=2)
         sdf_update = triangle_SDF(q_update, self._psi, self._radius).reshape(num_robots, self._num_landmarks)
         weights_info = (1 - phi(sdf_update, self._kappa))
         M_total = weights_info.sum(dim=0).unsqueeze(1) * self._inv_V
-        self._info[:self._num_landmarks, :] = self._info[:self._num_landmarks, :] + M_total
-        
-        info_gain = torch.sum(torch.log(self._info[:self._num_landmarks, :].clamp_min(self._log_epsilon))) - torch.sum(
+        self._info = self._info + M_total
+        info_gain = torch.sum(torch.log(self._info.clamp_min(self._log_epsilon))) - torch.sum(
             torch.log(info_prior.clamp_min(self._log_epsilon)))
         self._accumulated_info_gain = self._accumulated_info_gain + info_gain
-        self._mu_predict[:self._num_landmarks, :] = self._mu_update[:self._num_landmarks, :]
+        self._mu_predict = self._mu_update
 
     def set_policy_grad_to_zero(self):
         self._policy_optimizer.zero_grad()

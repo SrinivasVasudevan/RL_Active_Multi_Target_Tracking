@@ -24,6 +24,8 @@ parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--num-robots', type=int, default=2)
 parser.add_argument('--num-clusters', type=int, default=2)
 parser.add_argument('--clustering-prob', type=float, default=0.65)
+parser.add_argument('--resume', type=str, default=None,
+                    help='path to policy weights to resume training from')
 args = parser.parse_args()
 
 torch.manual_seed(args.seed)
@@ -50,6 +52,21 @@ def get_frame(env, current_fov_mask=None):
         except TypeError:
             return env.get_current_frame()
     return env.get_current_frame()
+
+def _get_resume_suffix(checkpoint_dir, seed):
+    base_names = [
+        f"best_model_seed{seed}",
+        "model_info_5_moving_landmarks_2",
+    ]
+    idx = 1
+    while True:
+        suffix = f"_resume{idx}"
+        if not any(
+            os.path.exists(os.path.join(checkpoint_dir, f"{base}{suffix}.pth"))
+            for base in base_names
+        ):
+            return suffix
+        idx += 1
 
 def run_model_based_training(params_filename):
     assert os.path.exists(params_filename)
@@ -102,7 +119,7 @@ def run_model_based_training(params_filename):
             env = SimpleEnvAtt(max_num_landmarks=max_num_landmarks, horizon=horizon, tau=tau,
                                A=A, B=B, V=V, W=W, landmark_motion_scale=landmark_motion_scale, psi=psi, radius=radius)
         agent = ModelBasedAgentAtt(max_num_landmarks=max_num_landmarks, init_info=init_info, A=A, B=B, W=W,
-                            radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots, uncertainty_threshold=10.0)
+                            radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots, uncertainty_threshold=15.0)
     else:
         if use_multi:
             env = MultiRobotEnv(num_robots=args.num_robots, max_num_landmarks=max_num_landmarks, horizon=horizon, tau=tau,
@@ -112,7 +129,20 @@ def run_model_based_training(params_filename):
             env = SimpleEnv(num_landmarks=num_landmarks, horizon=horizon, width=env_width, height=env_height, tau=tau,
                             A=A, B=B, V=V, W=W, landmark_motion_scale=landmark_motion_scale, psi=psi, radius=radius)
         agent = ModelBasedAgent(num_landmarks=num_landmarks, init_info=init_info, A=A, B=B, W=W,
-                            radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots, uncertainty_threshold=10.0)
+                            radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots, uncertainty_threshold=15.0)
+    checkpoint_dir = './checkpoints'
+    os.makedirs(checkpoint_dir, exist_ok=True)
+    resume_suffix = ""
+    if args.resume is not None:
+        if not os.path.exists(args.resume):
+            raise FileNotFoundError(f"Resume weights not found: {args.resume}")
+        agent.load_policy_state_dict(args.resume)
+        resume_suffix = _get_resume_suffix(checkpoint_dir, args.seed)
+        print(f"Resuming from {args.resume}; saving checkpoints with suffix {resume_suffix}")
+
+    best_model_path = os.path.join(checkpoint_dir, f"best_model_seed{args.seed}{resume_suffix}.pth")
+    final_model_path = os.path.join(checkpoint_dir, f"model_info_5_moving_landmarks_2{resume_suffix}.pth")
+
     writer = SummaryWriter('./tensorboard/')
 
     agent.train_policy()
@@ -149,7 +179,7 @@ def run_model_based_training(params_filename):
         print('Normalized average reward at epoch {}: {}'.format(i, mean_reward))
         print('Normalized median reward at epoch {}: {}'.format(i, np.median(reward_list[i])))
         if mean_reward > best_reward:
-            torch.save(agent.get_policy_state_dict(), './checkpoints/best_model_seed{}.pth'.format(args.seed))
+            torch.save(agent.get_policy_state_dict(), best_model_path)
             best_reward = mean_reward
             print("New best model!\n")
 
@@ -183,7 +213,7 @@ def run_model_based_training(params_filename):
                 video.release()
                 print(f"Saved video to {video_name}\n")
 
-    torch.save(agent.get_policy_state_dict(), './checkpoints/model_info_5_moving_landmarks_2.pth')
+    torch.save(agent.get_policy_state_dict(), final_model_path)
 
     os.makedirs('logs', exist_ok=True)
     plt.figure()

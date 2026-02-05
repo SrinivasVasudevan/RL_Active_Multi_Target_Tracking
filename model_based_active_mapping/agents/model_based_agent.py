@@ -291,6 +291,40 @@ class ModelBasedAgent:
         self._accumulated_info_gain = self._accumulated_info_gain + info_gain
         self._mu_predict = self._mu_update
 
+    # def update_policy(self, debug=False):
+    #     self._policy_optimizer.zero_grad()
+    #
+    #     if debug:
+    #         param_list = []
+    #         grad_power = 0
+    #         for i, p in enumerate(self._policy.parameters()):
+    #             param_list.append(p.data.detach().clone())
+    #             if p.grad is not None:
+    #                 grad_power += (p.grad**2).sum()
+    #             else:
+    #                 grad_power += 0
+    #
+    #         print("Gradient power before backward: {}".format(grad_power))
+    #
+    #     reward = - torch.sum(torch.log(self._info))
+    #     reward.backward()
+    #     self._policy_optimizer.step()
+    #
+    #     if debug:
+    #         grad_power = 0
+    #         total_param_ssd = 0
+    #         for i, p in enumerate(self._policy.parameters()):
+    #             if p.grad is not None:
+    #                 grad_power += (p.grad ** 2).sum()
+    #             else:
+    #                 grad_power += 0
+    #             total_param_ssd += ((param_list[i] - p.data) ** 2).sum()
+    #
+    #         print("Gradient power after backward: {}".format(grad_power))
+    #         print("SSD of weights after applying the gradient: {}".format(total_param_ssd))
+    #
+    #     return -reward.item()
+
     def set_policy_grad_to_zero(self):
         self._policy_optimizer.zero_grad()
 

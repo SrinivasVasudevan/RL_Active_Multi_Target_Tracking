@@ -28,11 +28,11 @@ class ModelBasedAgent:
         # OPTION 1 REWARD WEIGHTS - Tuned for coverage + persistence
         weights = {
             'info_gain': 0.1,        # Reduced from your implicit 1.0 to make it less greedy
-            'persistence': 3.0,       # Increased - reward staying on targets
-            'loss': 6.0,             # Penalize dropping targets
-            'overlap': 0.5,          # Penalize redundant coverage
-            'coverage': 3.0,         # NEW: Strong bonus for covering diverse targets
-            'tracking_continuity': 1.0,  # NEW: Bonus for sustained tracking
+            'persistence': 4.0,       # Increased - reward staying on targets
+            'loss': 8.0,             # Penalize dropping targets
+            'overlap': 2.5,          # Penalize redundant coverage
+            'coverage': 4.0,         # NEW: Strong bonus for covering diverse targets
+            'tracking_continuity': 3.0,  # NEW: Bonus for sustained tracking
         }
         if reward_weights is not None:
             weights.update(reward_weights)

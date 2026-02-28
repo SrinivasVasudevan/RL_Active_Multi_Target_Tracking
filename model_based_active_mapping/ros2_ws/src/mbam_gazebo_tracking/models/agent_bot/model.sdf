@@ -1,0 +1,126 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="agent_bot">
+    <static>false</static>
+
+    <link name="base_link">
+      <pose>0 0 0.15 0 0 0</pose>
+      <inertial>
+        <mass>5.0</mass>
+        <inertia>
+          <ixx>0.1</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.1</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.2</izz>
+        </inertia>
+      </inertial>
+
+      <collision name="base_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.18</radius>
+            <length>0.22</length>
+          </cylinder>
+        </geometry>
+      </collision>
+
+      <visual name="base_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.18</radius>
+            <length>0.22</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.1 0.3 0.95 1.0</ambient>
+          <diffuse>0.1 0.3 0.95 1.0</diffuse>
+          <specular>0.2 0.2 0.2 1.0</specular>
+        </material>
+      </visual>
+
+      <visual name="heading_visual">
+        <pose>0.16 0 0.16 0 1.5708 0</pose>
+        <geometry>
+          <box>
+            <size>0.10 0.03 0.03</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>1.0 1.0 1.0 1.0</ambient>
+          <diffuse>1.0 1.0 1.0 1.0</diffuse>
+        </material>
+      </visual>
+
+      <sensor name="front_camera" type="camera">
+        <pose>0.10 0 0.18 0 0 0</pose>
+        <always_on>true</always_on>
+        <update_rate>15.0</update_rate>
+        <visualize>true</visualize>
+        <camera>
+          <horizontal_fov>1.39626</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>360</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>35.0</far>
+          </clip>
+        </camera>
+        <plugin name="gazebo_ros_camera" filename="libgazebo_ros_camera.so">
+          <ros>
+            <remapping>image_raw:=camera/image_raw</remapping>
+            <remapping>camera_info:=camera/camera_info</remapping>
+          </ros>
+          <camera_name>camera</camera_name>
+          <frame_name>camera_link</frame_name>
+        </plugin>
+      </sensor>
+
+      <sensor name="planar_lidar" type="ray">
+        <!-- Place lidar outside base collision and at target height to avoid self-hits. -->
+        <pose>0.20 0 0.10 0 0 0</pose>
+        <always_on>true</always_on>
+        <update_rate>20.0</update_rate>
+        <visualize>true</visualize>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>720</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.14159</min_angle>
+              <max_angle>3.14159</max_angle>
+            </horizontal>
+          </scan>
+          <range>
+            <min>0.05</min>
+            <max>40.0</max>
+            <resolution>0.01</resolution>
+          </range>
+        </ray>
+        <plugin name="gazebo_ros_laser" filename="libgazebo_ros_ray_sensor.so">
+          <ros>
+            <remapping>~/out:=scan</remapping>
+          </ros>
+          <output_type>sensor_msgs/LaserScan</output_type>
+          <frame_name>laser_link</frame_name>
+        </plugin>
+      </sensor>
+    </link>
+
+    <plugin name="planar_move" filename="libgazebo_ros_planar_move.so">
+      <ros>
+        <remapping>cmd_vel:=cmd_vel</remapping>
+        <remapping>odom:=odom</remapping>
+      </ros>
+      <command_timeout>0.5</command_timeout>
+      <odometry_frame>odom</odometry_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+      <publish_odom>true</publish_odom>
+      <publish_odom_tf>false</publish_odom_tf>
+    </plugin>
+  </model>
+</sdf>

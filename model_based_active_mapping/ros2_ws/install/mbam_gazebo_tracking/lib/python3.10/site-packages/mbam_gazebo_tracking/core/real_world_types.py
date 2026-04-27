@@ -106,3 +106,41 @@ class RobotReport:
         if not isinstance(data, dict):
             raise ValueError("robot report payload must decode to a JSON object")
         return cls.from_dict(data)
+
+
+@dataclass
+class VelocityCommand:
+    robot_name: str
+    stamp_sec: float
+    linear_x: float
+    angular_z: float
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "robot_name": self.robot_name,
+            "stamp_sec": float(self.stamp_sec),
+            "twist": {
+                "linear_x": float(self.linear_x),
+                "angular_z": float(self.angular_z),
+            },
+        }
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict(), separators=(",", ":"))
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "VelocityCommand":
+        twist = data.get("twist", {})
+        return cls(
+            robot_name=str(data.get("robot_name", "")),
+            stamp_sec=float(data.get("stamp_sec", 0.0)),
+            linear_x=float(twist.get("linear_x", 0.0)),
+            angular_z=float(twist.get("angular_z", 0.0)),
+        )
+
+    @classmethod
+    def from_json(cls, raw: str) -> "VelocityCommand":
+        data = json.loads(raw)
+        if not isinstance(data, dict):
+            raise ValueError("velocity command payload must decode to a JSON object")
+        return cls.from_dict(data)

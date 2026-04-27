@@ -1,4 +1,5 @@
 import math
+import socket
 from typing import Dict, Optional
 
 import numpy as np
@@ -7,6 +8,9 @@ from geometry_msgs.msg import Twist
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 
+from mbam_gazebo_tracking.core.network_utils import create_udp_socket, recv_udp_messages
+from mbam_gazebo_tracking.core.real_world_types import VelocityCommand
+
 
 class LimoSafetyController(Node):
     def __init__(self):
@@ -14,10 +18,13 @@ class LimoSafetyController(Node):
 
         self.declare_parameter("robot_name", "")
         self.declare_parameter("scan_topic", "/scan")
+        self.declare_parameter("command_transport_mode", "ros")
         self.declare_parameter("input_cmd_topic", "")
+        self.declare_parameter("command_bind_host", "0.0.0.0")
+        self.declare_parameter("command_port", 15001)
         self.declare_parameter("output_cmd_topic", "/cmd_vel")
         self.declare_parameter("control_period_sec", 0.05)
-        self.declare_parameter("cmd_timeout_sec", 0.5)
+        self.declare_parameter("cmd_timeout_sec", 2.0)
         self.declare_parameter("scan_timeout_sec", 0.5)
         self.declare_parameter("stop_on_missing_scan", True)
         self.declare_parameter("min_valid_range_m", 0.15)
@@ -47,8 +54,11 @@ class LimoSafetyController(Node):
         if not input_cmd_topic:
             input_cmd_topic = f"/{self.robot_name}/mbam_cmd_vel"
 
+        self.command_transport_mode = str(self.get_parameter("command_transport_mode").value).strip().lower()
         self.scan_topic = str(self.get_parameter("scan_topic").value)
         self.input_cmd_topic = input_cmd_topic
+        self.command_bind_host = str(self.get_parameter("command_bind_host").value)
+        self.command_port = int(self.get_parameter("command_port").value)
         self.output_cmd_topic = str(self.get_parameter("output_cmd_topic").value)
         self.control_period_sec = float(self.get_parameter("control_period_sec").value)
         self.cmd_timeout_sec = float(self.get_parameter("cmd_timeout_sec").value)
@@ -85,16 +95,30 @@ class LimoSafetyController(Node):
         self.latest_scan: Optional[LaserScan] = None
         self.latest_scan_time_sec = 0.0
         self.warn_times: Dict[str, float] = {}
+        self.command_socket: Optional[socket.socket] = None
 
-        self.create_subscription(Twist, self.input_cmd_topic, self._cmd_cb, 20)
+        if self.command_transport_mode == "ros":
+            self.create_subscription(Twist, self.input_cmd_topic, self._cmd_cb, 20)
+        elif self.command_transport_mode == "udp":
+            self.command_socket = create_udp_socket(bind_host=self.command_bind_host, bind_port=self.command_port)
+        else:
+            raise ValueError(f"unsupported command_transport_mode: {self.command_transport_mode}")
+
         self.create_subscription(LaserScan, self.scan_topic, self._scan_cb, 20)
         self.cmd_pub = self.create_publisher(Twist, self.output_cmd_topic, 20)
         self.timer = self.create_timer(self.control_period_sec, self._control_loop)
 
-        self.get_logger().info(
-            f"LIMO safety controller ready for robot='{self.robot_name}' "
-            f"input='{self.input_cmd_topic}' output='{self.output_cmd_topic}' scan='{self.scan_topic}'"
-        )
+        if self.command_transport_mode == "ros":
+            self.get_logger().info(
+                f"LIMO safety controller ready for robot='{self.robot_name}' "
+                f"input='{self.input_cmd_topic}' output='{self.output_cmd_topic}' scan='{self.scan_topic}'"
+            )
+        else:
+            self.get_logger().info(
+                f"LIMO safety controller ready for robot='{self.robot_name}' "
+                f"udp_command_bind={self.command_bind_host}:{self.command_port} "
+                f"output='{self.output_cmd_topic}' scan='{self.scan_topic}'"
+            )
 
     def _cmd_cb(self, msg: Twist):
         self.latest_cmd = msg
@@ -105,6 +129,7 @@ class LimoSafetyController(Node):
         self.latest_scan_time_sec = self._now_sec()
 
     def _control_loop(self):
+        self._poll_command_socket()
         now_sec = self._now_sec()
         if self.latest_cmd is None or (now_sec - self.latest_cmd_time_sec) > self.cmd_timeout_sec:
             self._publish_zero()
@@ -279,6 +304,23 @@ class LimoSafetyController(Node):
 
     def _publish_zero(self):
         self.cmd_pub.publish(Twist())
+
+    def _poll_command_socket(self):
+        if self.command_socket is None:
+            return
+        for payload, _addr in recv_udp_messages(self.command_socket):
+            try:
+                cmd = VelocityCommand.from_json(payload.decode("utf-8"))
+            except Exception as exc:
+                self._warn_throttle("bad_udp_command", f"Failed to parse UDP velocity command: {exc}")
+                continue
+            if cmd.robot_name and cmd.robot_name != self.robot_name:
+                continue
+            twist = Twist()
+            twist.linear.x = float(cmd.linear_x)
+            twist.angular.z = float(cmd.angular_z)
+            self.latest_cmd = twist
+            self.latest_cmd_time_sec = self._now_sec()
 
     def _warn_throttle(self, key: str, message: str, period_sec: float = 1.0):
         now_sec = self._now_sec()

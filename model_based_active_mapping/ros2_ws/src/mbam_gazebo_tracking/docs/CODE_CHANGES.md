@@ -28,6 +28,8 @@ This document provides a full list of new files added for ROS 2 Gazebo/RViz test
   - Per-target, per-robot tracking summary and aggregated metrics.
 - `ros2_ws/src/mbam_gazebo_tracking/mbam_gazebo_tracking/core/episode_sampler.py`
   - Episode initialization sampler with clustered target generation.
+- `ros2_ws/src/mbam_gazebo_tracking/mbam_gazebo_tracking/core/network_utils.py`
+  - UDP transport helpers for Humble/Foxy communication without direct ROS 2 inter-distro topic exchange.
 
 ## ROS node
 
@@ -45,13 +47,16 @@ This document provides a full list of new files added for ROS 2 Gazebo/RViz test
   - Real-world edge node for each Agilex LIMO.
   - Subscribes to robot pose, RGB camera, camera intrinsics, and optional lidar.
   - Detects human targets and robot targets, projects them to ground/world coordinates, and publishes JSON reports.
+  - Supports ROS-topic transport and UDP JSON transport.
 - `ros2_ws/src/mbam_gazebo_tracking/mbam_gazebo_tracking/nodes/limo_central_coordinator_node.py`
   - Real-world central node.
   - Subscribes to per-robot reports, builds target tracks, estimates target velocity, runs MBAM policy inference, and publishes planner velocity commands.
+  - Supports ROS-topic transport and UDP JSON transport.
 - `ros2_ws/src/mbam_gazebo_tracking/mbam_gazebo_tracking/nodes/limo_safety_controller_node.py`
   - Real-world edge safety node for each Agilex LIMO.
   - Subscribes to planner commands plus local lidar and publishes the final safe `/cmd_vel`.
   - Adds obstacle and wall avoidance using sector-based lidar braking and turn suppression.
+  - Supports receiving planner commands over ROS topics or UDP JSON.
 
 ## Real-world core helpers
 
@@ -63,6 +68,7 @@ This document provides a full list of new files added for ROS 2 Gazebo/RViz test
     - optional camera+lidar range refinement
 - `ros2_ws/src/mbam_gazebo_tracking/mbam_gazebo_tracking/core/real_world_types.py`
   - Shared report / detection payload dataclasses used by the LIMO-side and central nodes.
+  - Also includes a serialized velocity-command payload for UDP command transport.
 - `ros2_ws/src/mbam_gazebo_tracking/mbam_gazebo_tracking/core/track_manager.py`
   - Maintains persistent target candidates across multiple robot reports using nearest-neighbor association and simple velocity estimation.
 
@@ -102,6 +108,7 @@ This document provides a full list of new files added for ROS 2 Gazebo/RViz test
   - Default parameter template for a LIMO-side safety controller node.
 - `ros2_ws/src/mbam_gazebo_tracking/config/limo_central.params.yaml`
   - Default parameter template for the central coordinator node.
+  - These real-world configs now default to UDP for Humble/Foxy compatibility.
 - `ros2_ws/src/mbam_gazebo_tracking/checkpoints/best_model_seed42.pth`
   - Copied checkpoint used by default launch.
 

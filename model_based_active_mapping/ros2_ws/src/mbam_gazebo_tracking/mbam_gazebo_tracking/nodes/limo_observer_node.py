@@ -1,4 +1,5 @@
 import math
+import socket
 from dataclasses import dataclass
 from typing import Dict, Optional
 
@@ -9,6 +10,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import CameraInfo, Image, LaserScan
 from std_msgs.msg import String
 
+from mbam_gazebo_tracking.core.network_utils import create_udp_socket
 from mbam_gazebo_tracking.core.perception import (
     CameraCalibration,
     MultiTargetDetector,
@@ -31,7 +33,10 @@ class LimoObservationReporter(Node):
         super().__init__("limo_observer")
 
         self.declare_parameter("robot_name", "")
+        self.declare_parameter("report_transport_mode", "ros")
         self.declare_parameter("report_topic", "/mbam/robot_reports")
+        self.declare_parameter("controller_host", "127.0.0.1")
+        self.declare_parameter("controller_report_port", 15000)
         self.declare_parameter("odom_topic", "/odom")
         self.declare_parameter("image_topic", "/camera/color/image_raw")
         self.declare_parameter("camera_info_topic", "/camera/color/camera_info")
@@ -66,7 +71,10 @@ class LimoObservationReporter(Node):
             robot_name = "limo"
         self.robot_name = robot_name
 
+        self.report_transport_mode = str(self.get_parameter("report_transport_mode").value).strip().lower()
         self.report_topic = str(self.get_parameter("report_topic").value)
+        self.controller_host = str(self.get_parameter("controller_host").value)
+        self.controller_report_port = int(self.get_parameter("controller_report_port").value)
         self.world_frame = str(self.get_parameter("world_frame").value)
         self.camera_height_m = float(self.get_parameter("camera_height_m").value)
         self.camera_pitch_rad = float(self.get_parameter("camera_pitch_rad").value)
@@ -98,6 +106,8 @@ class LimoObservationReporter(Node):
         self.latest_scan: Optional[ScanFrame] = None
         self.calibration: Optional[CameraCalibration] = None
         self.warn_times: Dict[str, float] = {}
+        self.report_pub = None
+        self.report_socket: Optional[socket.socket] = None
 
         odom_topic = str(self.get_parameter("odom_topic").value)
         image_topic = str(self.get_parameter("image_topic").value)
@@ -110,13 +120,26 @@ class LimoObservationReporter(Node):
         if self.enable_scan_fusion and scan_topic:
             self.create_subscription(LaserScan, scan_topic, self._scan_cb, 20)
 
-        self.report_pub = self.create_publisher(String, self.report_topic, 10)
+        if self.report_transport_mode == "ros":
+            self.report_pub = self.create_publisher(String, self.report_topic, 10)
+        elif self.report_transport_mode == "udp":
+            self.report_socket = create_udp_socket()
+        else:
+            raise ValueError(f"unsupported report_transport_mode: {self.report_transport_mode}")
+
         self.timer = self.create_timer(self.report_period_sec, self._process_and_publish)
 
-        self.get_logger().info(
-            f"LIMO observer ready for robot='{self.robot_name}' report_topic='{self.report_topic}' "
-            f"detectors={self.detector.describe_backends()}"
-        )
+        if self.report_transport_mode == "ros":
+            self.get_logger().info(
+                f"LIMO observer ready for robot='{self.robot_name}' report_topic='{self.report_topic}' "
+                f"detectors={self.detector.describe_backends()}"
+            )
+        else:
+            self.get_logger().info(
+                f"LIMO observer ready for robot='{self.robot_name}' "
+                f"udp_report_target={self.controller_host}:{self.controller_report_port} "
+                f"detectors={self.detector.describe_backends()}"
+            )
 
     def _odom_cb(self, msg: Odometry):
         p = msg.pose.pose.position
@@ -226,9 +249,19 @@ class LimoObservationReporter(Node):
             detections=target_detections,
         )
 
-        msg = String()
-        msg.data = report.to_json()
-        self.report_pub.publish(msg)
+        if self.report_transport_mode == "ros":
+            msg = String()
+            msg.data = report.to_json()
+            self.report_pub.publish(msg)
+            return
+
+        try:
+            self.report_socket.sendto(
+                report.to_json().encode("utf-8"),
+                (self.controller_host, self.controller_report_port),
+            )
+        except OSError as exc:
+            self._warn_throttle("udp_report_send", f"Failed to send UDP robot report: {exc}")
 
     def _warn_throttle(self, key: str, message: str, period_sec: float = 2.0):
         now_sec = self.get_clock().now().nanoseconds * 1e-9

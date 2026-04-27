@@ -2,10 +2,13 @@
   ros__parameters:
     robot_name: "limo0"
     scan_topic: "/scan"
+    command_transport_mode: "udp"
     input_cmd_topic: ""
+    command_bind_host: "0.0.0.0"
+    command_port: 15001
     output_cmd_topic: "/cmd_vel"
     control_period_sec: 0.05
-    cmd_timeout_sec: 0.5
+    cmd_timeout_sec: 2.0
     scan_timeout_sec: 0.5
     stop_on_missing_scan: true
     min_valid_range_m: 0.15

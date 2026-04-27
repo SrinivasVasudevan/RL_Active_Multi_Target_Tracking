@@ -1,7 +1,10 @@
 /**:
   ros__parameters:
     robot_name: "limo0"
+    report_transport_mode: "udp"
     report_topic: "/mbam/robot_reports"
+    controller_host: "192.168.50.1"
+    controller_report_port: 15000
     odom_topic: "/odom"
     image_topic: "/camera/color/image_raw"
     camera_info_topic: "/camera/color/camera_info"

@@ -1,8 +1,12 @@
 /**:
   ros__parameters:
     robot_names: "limo0,limo1"
+    transport_mode: "udp"
     report_topic: "/mbam/robot_reports"
     cmd_topic_template: "/{robot_name}/mbam_cmd_vel"
+    report_bind_host: "0.0.0.0"
+    report_port: 15000
+    robot_command_targets_csv: "limo0=192.168.50.101:15001,limo1=192.168.50.102:15001"
     marker_topic: "/mbam/real_world_markers"
     marker_frame: "map"
     max_num_landmarks: 7

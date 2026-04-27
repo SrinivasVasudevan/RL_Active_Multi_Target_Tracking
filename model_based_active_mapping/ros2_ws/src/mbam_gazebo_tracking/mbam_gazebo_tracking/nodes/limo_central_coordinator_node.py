@@ -1,6 +1,7 @@
 import math
 import os
-from typing import Dict, List, Optional, Sequence, Tuple
+import socket
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import rclpy
 import torch
@@ -12,7 +13,8 @@ from std_msgs.msg import String
 from visualization_msgs.msg import Marker, MarkerArray
 
 from mbam_gazebo_tracking.core.model_based_agent_att_ros import ModelBasedAgentAttRos
-from mbam_gazebo_tracking.core.real_world_types import RobotReport
+from mbam_gazebo_tracking.core.network_utils import create_udp_socket, parse_robot_targets_csv, recv_udp_messages
+from mbam_gazebo_tracking.core.real_world_types import RobotReport, VelocityCommand
 from mbam_gazebo_tracking.core.track_manager import ReportSnapshot, TrackManager
 
 
@@ -27,8 +29,12 @@ class LimoCentralCoordinator(Node):
         self.declare_parameter("params_file", default_params)
         self.declare_parameter("model_path", default_ckpt)
         self.declare_parameter("robot_names", "limo0,limo1")
+        self.declare_parameter("transport_mode", "ros")
         self.declare_parameter("report_topic", "/mbam/robot_reports")
         self.declare_parameter("cmd_topic_template", "/{robot_name}/mbam_cmd_vel")
+        self.declare_parameter("report_bind_host", "0.0.0.0")
+        self.declare_parameter("report_port", 15000)
+        self.declare_parameter("robot_command_targets_csv", "")
         self.declare_parameter("marker_topic", "/mbam/real_world_markers")
         self.declare_parameter("marker_frame", "map")
         self.declare_parameter("max_num_landmarks", 7)
@@ -62,8 +68,14 @@ class LimoCentralCoordinator(Node):
 
         self.marker_frame = str(self.get_parameter("marker_frame").value)
         self.marker_topic = str(self.get_parameter("marker_topic").value)
+        self.transport_mode = str(self.get_parameter("transport_mode").value).strip().lower()
         self.report_topic = str(self.get_parameter("report_topic").value)
         self.cmd_topic_template = str(self.get_parameter("cmd_topic_template").value)
+        self.report_bind_host = str(self.get_parameter("report_bind_host").value)
+        self.report_port = int(self.get_parameter("report_port").value)
+        self.robot_command_targets = parse_robot_targets_csv(
+            str(self.get_parameter("robot_command_targets_csv").value)
+        )
         self.max_num_landmarks = int(self.get_parameter("max_num_landmarks").value)
         self.max_report_age_sec = float(self.get_parameter("max_report_age_sec").value)
         self.enable_collision_pause = bool(self.get_parameter("enable_collision_pause").value)
@@ -90,19 +102,36 @@ class LimoCentralCoordinator(Node):
         self.latest_reports: Dict[str, ReportSnapshot] = {}
         self.warn_times: Dict[str, float] = {}
         self.active_track_ids: List[int] = []
+        self.cmd_pubs: Dict[str, Any] = {}
+        self.report_socket: Optional[socket.socket] = None
+        self.command_socket: Optional[socket.socket] = None
 
-        self.cmd_pubs = {
-            robot_name: self.create_publisher(Twist, self.cmd_topic_template.format(robot_name=robot_name), 10)
-            for robot_name in self.robot_names
-        }
+        if self.transport_mode == "ros":
+            self.cmd_pubs = {
+                robot_name: self.create_publisher(Twist, self.cmd_topic_template.format(robot_name=robot_name), 10)
+                for robot_name in self.robot_names
+            }
+            self.create_subscription(String, self.report_topic, self._report_cb, 50)
+        elif self.transport_mode == "udp":
+            self.report_socket = create_udp_socket(bind_host=self.report_bind_host, bind_port=self.report_port)
+            self.command_socket = create_udp_socket()
+        else:
+            raise ValueError(f"unsupported transport_mode: {self.transport_mode}")
+
         self.marker_pub = self.create_publisher(MarkerArray, self.marker_topic, 10)
-        self.create_subscription(String, self.report_topic, self._report_cb, 50)
         self.timer = self.create_timer(self.control_period_sec, self._control_loop)
 
-        self.get_logger().info(
-            f"Central MBAM coordinator ready for robots={self.robot_names} report_topic='{self.report_topic}' "
-            f"cmd_topics={[self.cmd_topic_template.format(robot_name=name) for name in self.robot_names]}"
-        )
+        if self.transport_mode == "ros":
+            self.get_logger().info(
+                f"Central MBAM coordinator ready for robots={self.robot_names} report_topic='{self.report_topic}' "
+                f"cmd_topics={[self.cmd_topic_template.format(robot_name=name) for name in self.robot_names]}"
+            )
+        else:
+            self.get_logger().info(
+                f"Central MBAM coordinator ready for robots={self.robot_names} "
+                f"udp_reports={self.report_bind_host}:{self.report_port} "
+                f"udp_commands={self.robot_command_targets}"
+            )
 
     def _init_core_components(self):
         tau = float(self.params["tau"])
@@ -169,6 +198,9 @@ class LimoCentralCoordinator(Node):
         self.latest_reports[report.robot_name] = ReportSnapshot(report=report, received_sec=received_sec)
 
     def _control_loop(self):
+        if self.report_socket is not None:
+            self._poll_report_socket()
+
         snapshots = self._get_fresh_snapshots()
         if snapshots is None:
             self._publish_zero_velocities()
@@ -259,15 +291,67 @@ class LimoCentralCoordinator(Node):
         for idx, robot_name in enumerate(self.robot_names):
             if idx >= action.size(0):
                 continue
-            msg = Twist()
-            msg.linear.x = float(action[idx, 0])
-            msg.angular.z = float(action[idx, 1])
-            self.cmd_pubs[robot_name].publish(msg)
+            linear_x = float(action[idx, 0])
+            angular_z = float(action[idx, 1])
+            if self.transport_mode == "ros":
+                msg = Twist()
+                msg.linear.x = linear_x
+                msg.angular.z = angular_z
+                self.cmd_pubs[robot_name].publish(msg)
+            else:
+                self._send_udp_command(robot_name=robot_name, linear_x=linear_x, angular_z=angular_z)
 
     def _publish_zero_velocities(self):
-        zero = Twist()
-        for pub in self.cmd_pubs.values():
-            pub.publish(zero)
+        if self.transport_mode == "ros":
+            zero = Twist()
+            for pub in self.cmd_pubs.values():
+                pub.publish(zero)
+            return
+
+        for robot_name in self.robot_names:
+            self._send_udp_command(robot_name=robot_name, linear_x=0.0, angular_z=0.0)
+
+    def _poll_report_socket(self):
+        if self.report_socket is None:
+            return
+        for payload, _addr in recv_udp_messages(self.report_socket):
+            try:
+                report = RobotReport.from_json(payload.decode("utf-8"))
+            except Exception as exc:
+                self._warn_throttle("bad_udp_report", f"Failed to parse UDP robot report: {exc}")
+                continue
+            if report.robot_name not in self.robot_names:
+                self._warn_throttle(
+                    f"unknown_udp_robot_{report.robot_name}",
+                    f"Ignoring UDP report from unknown robot '{report.robot_name}'.",
+                )
+                continue
+            received_sec = self.get_clock().now().nanoseconds * 1e-9
+            self.latest_reports[report.robot_name] = ReportSnapshot(report=report, received_sec=received_sec)
+
+    def _send_udp_command(self, robot_name: str, linear_x: float, angular_z: float):
+        if self.command_socket is None:
+            return
+        target = self.robot_command_targets.get(robot_name)
+        if target is None:
+            self._warn_throttle(
+                f"missing_udp_target_{robot_name}",
+                f"No UDP command target configured for robot '{robot_name}'.",
+            )
+            return
+        payload = VelocityCommand(
+            robot_name=robot_name,
+            stamp_sec=self.get_clock().now().nanoseconds * 1e-9,
+            linear_x=linear_x,
+            angular_z=angular_z,
+        ).to_json().encode("utf-8")
+        try:
+            self.command_socket.sendto(payload, target)
+        except OSError as exc:
+            self._warn_throttle(
+                f"udp_send_error_{robot_name}",
+                f"Failed to send UDP command to '{robot_name}' at {target}: {exc}",
+            )
 
     def _apply_collision_pause(self, action: torch.Tensor, x: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         if not self.enable_collision_pause:

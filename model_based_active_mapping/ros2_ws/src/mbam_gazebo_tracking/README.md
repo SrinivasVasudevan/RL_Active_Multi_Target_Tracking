@@ -19,6 +19,7 @@ ROS 2 package for running `run_model_based_testing`-equivalent evaluation in Gaz
   - one **central coordinator** node that consumes robot reports, maintains target tracks, runs the MBAM policy, and publishes planner commands
   - one **LIMO-side observer** node per robot that detects humans / robot targets from the onboard camera and sends back pose + target belief reports
   - one **LIMO-side safety controller** per robot that filters planner commands with local lidar before they reach the real `/cmd_vel`
+  - one **cross-distro UDP transport path** so a ROS 2 Humble controller can communicate with ROS 2 Foxy LIMOs without direct inter-distro ROS topic exchange
 
 ## Package layout
 
@@ -154,13 +155,25 @@ When enabled, each robot command is paused (zero linear/angular velocity) if the
   - camera calibration
   - optional `/scan` for range refinement
 - The safety controller subscribes to:
-  - `/<robot_name>/mbam_cmd_vel` from the central coordinator
+  - planner commands from the central coordinator
   - local `/scan`
   - and publishes the filtered result to the real `/cmd_vel`
 - The central processor runs `limo_central_coordinator`.
-- The coordinator subscribes to `/mbam/robot_reports` and publishes:
-  - `/<robot_name>/mbam_cmd_vel` for each LIMO
+- The coordinator receives robot reports and publishes commands using either:
+  - direct ROS topics for same-distro setups
+  - UDP JSON for cross-distro setups such as **Humble controller + Foxy LIMOs**
+- In the Humble/Foxy case, the coordinator listens for UDP reports and sends UDP commands.
+- Each LIMO keeps ROS local for sensors and `/cmd_vel`.
+- The coordinator still publishes:
   - `/mbam/real_world_markers` for RViz
+
+### Humble/Foxy compatibility
+
+- A ROS 2 Humble machine and a ROS 2 Foxy machine should not be treated as a reliable direct ROS 2 communication pair for this application.
+- This package now avoids that dependency by moving the **machine-to-machine seam** to UDP JSON.
+- Local machine behavior stays ROS-native:
+  - the Foxy LIMO still reads `Odometry`, `Image`, `CameraInfo`, `LaserScan`, and writes `/cmd_vel`
+  - the Humble controller still runs the MBAM node and RViz normally
 
 ### Important assumptions
 
@@ -194,15 +207,20 @@ When enabled, each robot command is paused (zero linear/angular velocity) if the
 On each LIMO, launch the edge stack with that robot's topics and calibration:
 
 ```bash
-source /opt/ros/humble/setup.bash
+source /opt/ros/foxy/setup.bash
 source ros2_ws/install/setup.bash
 
 ros2 launch mbam_gazebo_tracking run_mbam_limo_edge.launch.py \
   robot_name:=limo0 \
+  report_transport_mode:=udp \
+  controller_host:=192.168.50.1 \
+  controller_report_port:=15000 \
   odom_topic:=/global_ekf/odom \
   image_topic:=/camera/color/image_raw \
   camera_info_topic:=/camera/color/camera_info \
   scan_topic:=/scan \
+  command_transport_mode:=udp \
+  command_port:=15001 \
   output_cmd_topic:=/cmd_vel \
   world_frame:=map \
   camera_height_m:=0.32 \
@@ -220,6 +238,10 @@ source ros2_ws/install/setup.bash
 
 ros2 launch mbam_gazebo_tracking run_mbam_limo_central.launch.py \
   robot_names:=limo0,limo1 \
+  transport_mode:=udp \
+  report_bind_host:=0.0.0.0 \
+  report_port:=15000 \
+  robot_command_targets_csv:="limo0=192.168.50.101:15001,limo1=192.168.50.102:15001" \
   marker_frame:=map \
   max_num_landmarks:=7 \
   track_association_distance_m:=1.5
@@ -244,6 +266,7 @@ ros2 run mbam_gazebo_tracking limo_central_coordinator --ros-args --params-file 
 - `track_association_distance_m` should be increased if targets move fast or your localization is noisy.
 - `control_period_sec` defaults to the MBAM training timestep (`tau` from `params_compare.yaml`); override it only if your hardware loop needs a different cadence.
 - `search_angular_velocity` controls how the robots scan when no target tracks are currently active.
+- `controller_host`, `report_port`, `command_port`, and `robot_command_targets_csv` are the transport settings that matter for Humble/Foxy interoperation.
 - `forward_emergency_stop_distance_m` and `forward_slowdown_distance_m` are the main wall / obstacle safety knobs on the LIMO side.
 - `turn_clearance_distance_m` and `side_clearance_distance_m` control how aggressively the robot rejects turns into nearby walls or objects.
 

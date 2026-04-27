@@ -23,6 +23,7 @@ mbam_gazebo_tracking/core/__init__.py
 mbam_gazebo_tracking/core/episode_sampler.py
 mbam_gazebo_tracking/core/math_utils.py
 mbam_gazebo_tracking/core/model_based_agent_att_ros.py
+mbam_gazebo_tracking/core/network_utils.py
 mbam_gazebo_tracking/core/perception.py
 mbam_gazebo_tracking/core/policy_net_att.py
 mbam_gazebo_tracking/core/real_world_types.py

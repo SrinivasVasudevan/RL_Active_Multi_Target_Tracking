@@ -41,11 +41,39 @@ This document provides a full list of new files added for ROS 2 Gazebo/RViz test
     - Fuse camera detections + lidar ranges to construct restricted-FOV target observations.
     - Update internal belief/filter and tracking stats.
     - Publish RViz `MarkerArray` and write JSON summaries.
+- `ros2_ws/src/mbam_gazebo_tracking/mbam_gazebo_tracking/nodes/limo_observer_node.py`
+  - Real-world edge node for each Agilex LIMO.
+  - Subscribes to robot pose, RGB camera, camera intrinsics, and optional lidar.
+  - Detects human targets and robot targets, projects them to ground/world coordinates, and publishes JSON reports.
+- `ros2_ws/src/mbam_gazebo_tracking/mbam_gazebo_tracking/nodes/limo_central_coordinator_node.py`
+  - Real-world central node.
+  - Subscribes to per-robot reports, builds target tracks, estimates target velocity, runs MBAM policy inference, and publishes planner velocity commands.
+- `ros2_ws/src/mbam_gazebo_tracking/mbam_gazebo_tracking/nodes/limo_safety_controller_node.py`
+  - Real-world edge safety node for each Agilex LIMO.
+  - Subscribes to planner commands plus local lidar and publishes the final safe `/cmd_vel`.
+  - Adds obstacle and wall avoidance using sector-based lidar braking and turn suppression.
+
+## Real-world core helpers
+
+- `ros2_ws/src/mbam_gazebo_tracking/mbam_gazebo_tracking/core/perception.py`
+  - 2D detection backends and geometric projection helpers.
+  - Supports:
+    - person detection via YOLO (if available) or OpenCV HOG fallback
+    - robot detection via ArUco markers and red-color segmentation fallback
+    - optional camera+lidar range refinement
+- `ros2_ws/src/mbam_gazebo_tracking/mbam_gazebo_tracking/core/real_world_types.py`
+  - Shared report / detection payload dataclasses used by the LIMO-side and central nodes.
+- `ros2_ws/src/mbam_gazebo_tracking/mbam_gazebo_tracking/core/track_manager.py`
+  - Maintains persistent target candidates across multiple robot reports using nearest-neighbor association and simple velocity estimation.
 
 ## Launch and simulation assets
 
 - `ros2_ws/src/mbam_gazebo_tracking/launch/run_mbam_gazebo.launch.py`
   - Launches Gazebo world, spawns all entities, starts RViz and runner node.
+- `ros2_ws/src/mbam_gazebo_tracking/launch/run_mbam_limo_edge.launch.py`
+  - Launches one LIMO-side observer node and one LIMO-side safety controller node.
+- `ros2_ws/src/mbam_gazebo_tracking/launch/run_mbam_limo_central.launch.py`
+  - Launches the central policy coordinator.
 - `ros2_ws/src/mbam_gazebo_tracking/worlds/mbam_tracking.world`
   - Gazebo world definition.
 - `ros2_ws/src/mbam_gazebo_tracking/models/agent_bot/model.config`
@@ -68,6 +96,12 @@ This document provides a full list of new files added for ROS 2 Gazebo/RViz test
 
 - `ros2_ws/src/mbam_gazebo_tracking/config/params_compare.yaml`
   - Copied test configuration for ROS runner.
+- `ros2_ws/src/mbam_gazebo_tracking/config/limo_edge.params.yaml`
+  - Default parameter template for a LIMO-side observer node.
+- `ros2_ws/src/mbam_gazebo_tracking/config/limo_safety.params.yaml`
+  - Default parameter template for a LIMO-side safety controller node.
+- `ros2_ws/src/mbam_gazebo_tracking/config/limo_central.params.yaml`
+  - Default parameter template for the central coordinator node.
 - `ros2_ws/src/mbam_gazebo_tracking/checkpoints/best_model_seed42.pth`
   - Copied checkpoint used by default launch.
 
@@ -83,7 +117,7 @@ This document provides a full list of new files added for ROS 2 Gazebo/RViz test
 ## Scope guard
 
 - No existing source file under the original non-ROS package directories was modified.
-- All new implementation is contained in the standalone ROS 2 package tree under `ros2_ws/src/mbam_gazebo_tracking`.
+- All new implementation is contained in the standalone ROS 2 package tree under `ros2_ws/src/mbam_gazebo_tracking`, except for a small initialization helper added to `model_based_agent_att_ros.py` inside that same package.
 
 ## Post-test fixes
 

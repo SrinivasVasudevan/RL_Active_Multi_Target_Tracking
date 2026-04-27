@@ -34,12 +34,15 @@ setup(
     zip_safe=True,
     maintainer='mbam',
     maintainer_email='maintainer@example.com',
-    description='ROS 2 Gazebo + RViz testing package for model-based active mapping with attention policy control.',
+    description='ROS 2 package for Gazebo testing and real LIMO deployment of model-based active target tracking.',
     license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
             'episode_runner = mbam_gazebo_tracking.nodes.episode_runner_node:main',
+            'limo_observer = mbam_gazebo_tracking.nodes.limo_observer_node:main',
+            'limo_central_coordinator = mbam_gazebo_tracking.nodes.limo_central_coordinator_node:main',
+            'limo_safety_controller = mbam_gazebo_tracking.nodes.limo_safety_controller_node:main',
         ],
     },
 )

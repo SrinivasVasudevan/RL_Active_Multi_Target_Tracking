@@ -2,7 +2,7 @@
 <package format="3">
   <name>mbam_gazebo_tracking</name>
   <version>0.1.0</version>
-  <description>ROS 2 Gazebo + RViz testing package for model-based active mapping with attention policy control.</description>
+  <description>ROS 2 package for Gazebo testing and real LIMO deployment of model-based active target tracking.</description>
 
   <maintainer email="maintainer@example.com">mbam</maintainer>
   <license>MIT</license>
@@ -24,6 +24,7 @@
 
   <exec_depend>python3-numpy</exec_depend>
   <exec_depend>python3-opencv</exec_depend>
+  <exec_depend>python3-torch</exec_depend>
   <exec_depend>python3-yaml</exec_depend>
 
   <export>

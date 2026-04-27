@@ -1,0 +1,45 @@
+<launch>
+  <arg name="robot_name" default="target0" />
+  <arg name="scan_topic" default="/scan" />
+  <arg name="output_cmd_topic" default="/cmd_vel" />
+  <arg name="raw_cmd_topic" default="" />
+
+  <arg name="motion_mode" default="constant" />
+  <arg name="constant_linear_velocity" default="0.20" />
+  <arg name="constant_angular_velocity" default="0.00" />
+
+  <arg name="wander_forward_velocity_min_mps" default="0.12" />
+  <arg name="wander_forward_velocity_max_mps" default="0.28" />
+  <arg name="wander_reverse_velocity_max_mps" default="0.10" />
+  <arg name="reverse_probability" default="0.05" />
+
+  <arg name="forward_emergency_stop_distance_m" default="0.45" />
+  <arg name="forward_slowdown_distance_m" default="0.90" />
+  <arg name="turn_clearance_distance_m" default="0.35" />
+  <arg name="side_clearance_distance_m" default="0.28" />
+
+  <node pkg="mbam_target_robot" type="target_motion_controller.py" name="target_motion_controller" output="screen">
+    <rosparam file="$(find mbam_target_robot)/config/target_motion.yaml" />
+    <param name="robot_name" value="$(arg robot_name)" />
+    <param name="output_cmd_topic" value="$(arg raw_cmd_topic)" />
+    <param name="motion_mode" value="$(arg motion_mode)" />
+    <param name="constant_linear_velocity" value="$(arg constant_linear_velocity)" />
+    <param name="constant_angular_velocity" value="$(arg constant_angular_velocity)" />
+    <param name="wander_forward_velocity_min_mps" value="$(arg wander_forward_velocity_min_mps)" />
+    <param name="wander_forward_velocity_max_mps" value="$(arg wander_forward_velocity_max_mps)" />
+    <param name="wander_reverse_velocity_max_mps" value="$(arg wander_reverse_velocity_max_mps)" />
+    <param name="reverse_probability" value="$(arg reverse_probability)" />
+  </node>
+
+  <node pkg="mbam_target_robot" type="target_safety_controller.py" name="target_safety_controller" output="screen">
+    <rosparam file="$(find mbam_target_robot)/config/target_safety.yaml" />
+    <param name="robot_name" value="$(arg robot_name)" />
+    <param name="scan_topic" value="$(arg scan_topic)" />
+    <param name="input_cmd_topic" value="$(arg raw_cmd_topic)" />
+    <param name="output_cmd_topic" value="$(arg output_cmd_topic)" />
+    <param name="forward_emergency_stop_distance_m" value="$(arg forward_emergency_stop_distance_m)" />
+    <param name="forward_slowdown_distance_m" value="$(arg forward_slowdown_distance_m)" />
+    <param name="turn_clearance_distance_m" value="$(arg turn_clearance_distance_m)" />
+    <param name="side_clearance_distance_m" value="$(arg side_clearance_distance_m)" />
+  </node>
+</launch>

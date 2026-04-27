@@ -1,0 +1,30 @@
+/**:
+  ros__parameters:
+    robot_name: "limo0"
+    report_topic: "/mbam/robot_reports"
+    odom_topic: "/odom"
+    image_topic: "/camera/color/image_raw"
+    camera_info_topic: "/camera/color/camera_info"
+    scan_topic: "/scan"
+    report_period_sec: 0.25
+    world_frame: "map"
+    camera_height_m: 0.32
+    camera_pitch_rad: 0.30
+    camera_forward_offset_m: 0.0
+    camera_lateral_offset_m: 0.0
+    target_ground_z_m: 0.0
+    min_ground_range_m: 0.35
+    max_ground_range_m: 8.0
+    enable_scan_fusion: true
+    scan_window_half_width: 2
+    scan_min_valid_range_m: 0.20
+    scan_range_gate_m: 2.0
+    enable_people_detection: true
+    enable_robot_detection: true
+    yolo_model_path: ""
+    yolo_device: ""
+    lower_body_crop_top_fraction: 0.35
+    people_confidence_threshold: 0.35
+    robot_min_area_px: 250
+    max_detections: 12
+    aruco_dictionary: "DICT_4X4_50"

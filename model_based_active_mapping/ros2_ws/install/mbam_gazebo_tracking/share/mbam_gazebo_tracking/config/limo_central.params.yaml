@@ -1,0 +1,19 @@
+/**:
+  ros__parameters:
+    robot_names: "limo0,limo1"
+    report_topic: "/mbam/robot_reports"
+    cmd_topic_template: "/{robot_name}/mbam_cmd_vel"
+    marker_topic: "/mbam/real_world_markers"
+    marker_frame: "map"
+    max_num_landmarks: 7
+    control_period_sec: -1.0
+    max_report_age_sec: 1.0
+    track_association_distance_m: 1.5
+    track_timeout_sec: 2.0
+    search_linear_velocity: 0.0
+    search_angular_velocity: 0.4
+    enable_collision_pause: true
+    collision_lookahead_sec: 1.0
+    collision_robot_radius: 0.28
+    collision_target_radius: 0.35
+    collision_safety_margin: 0.10

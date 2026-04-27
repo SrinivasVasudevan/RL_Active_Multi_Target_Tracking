@@ -1,0 +1,24 @@
+control_period_sec: 0.05
+cmd_timeout_sec: 0.5
+scan_timeout_sec: 0.5
+stop_on_missing_scan: true
+
+min_valid_range_m: 0.15
+max_linear_speed_mps: 0.35
+max_angular_speed_rps: 0.90
+
+front_sector_half_angle_deg: 25.0
+front_diagonal_center_angle_deg: 45.0
+front_diagonal_half_angle_deg: 22.0
+side_sector_center_angle_deg: 90.0
+side_sector_half_angle_deg: 20.0
+rear_sector_half_angle_deg: 30.0
+
+forward_emergency_stop_distance_m: 0.45
+forward_slowdown_distance_m: 0.90
+reverse_emergency_stop_distance_m: 0.30
+reverse_slowdown_distance_m: 0.60
+turn_clearance_distance_m: 0.35
+side_clearance_distance_m: 0.28
+escape_turn_speed_rps: 0.55
+turn_bias_margin_m: 0.08

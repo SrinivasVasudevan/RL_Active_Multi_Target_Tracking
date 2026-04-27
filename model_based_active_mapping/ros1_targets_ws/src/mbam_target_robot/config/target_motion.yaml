@@ -1,0 +1,21 @@
+publish_rate_hz: 10.0
+motion_mode: "constant"
+
+constant_linear_velocity: 0.20
+constant_angular_velocity: 0.00
+
+max_linear_speed_mps: 0.35
+max_angular_speed_rps: 0.80
+
+random_seed: -1
+command_hold_time_min_sec: 1.5
+command_hold_time_max_sec: 4.0
+
+wander_forward_velocity_min_mps: 0.12
+wander_forward_velocity_max_mps: 0.28
+wander_reverse_velocity_max_mps: 0.10
+wander_angular_speed_max_rps: 0.70
+
+reverse_probability: 0.05
+stop_probability: 0.05
+in_place_turn_probability: 0.15

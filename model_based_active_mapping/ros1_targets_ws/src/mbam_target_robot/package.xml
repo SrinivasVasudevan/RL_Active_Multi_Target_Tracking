@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>mbam_target_robot</name>
+  <version>0.1.0</version>
+  <description>ROS 1 target robot motion and safety package for MBAM experiments.</description>
+
+  <maintainer email="maintainer@example.com">mbam</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>rospy</depend>
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+
+  <exec_depend>python3-numpy</exec_depend>
+
+  <export />
+</package>

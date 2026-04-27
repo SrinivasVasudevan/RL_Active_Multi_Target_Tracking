@@ -207,8 +207,7 @@ When enabled, each robot command is paused (zero linear/angular velocity) if the
 On each LIMO, launch the edge stack with that robot's topics and calibration:
 
 ```bash
-source /opt/ros/foxy/setup.bash
-source ros2_ws/install/setup.bash
+source ros2_ws/setup.bash
 
 ros2 launch mbam_gazebo_tracking run_mbam_limo_edge.launch.py \
   robot_name:=limo0 \
@@ -233,8 +232,7 @@ Launch the second robot the same way with `robot_name:=limo1`.
 On the central processor:
 
 ```bash
-source /opt/ros/humble/setup.bash
-source ros2_ws/install/setup.bash
+source ros2_ws/setup.bash
 
 ros2 launch mbam_gazebo_tracking run_mbam_limo_central.launch.py \
   robot_names:=limo0,limo1 \
@@ -266,6 +264,8 @@ ros2 run mbam_gazebo_tracking limo_central_coordinator --ros-args --params-file 
 - `track_association_distance_m` should be increased if targets move fast or your localization is noisy.
 - `control_period_sec` defaults to the MBAM training timestep (`tau` from `params_compare.yaml`); override it only if your hardware loop needs a different cadence.
 - `search_angular_velocity` controls how the robots scan when no target tracks are currently active.
+- `ros2_ws/setup.bash` auto-detects the local ROS 2 distro from `/opt/ros`, and you can override that with `MBAM_ROS_DISTRO=foxy` or `MBAM_ROS_DISTRO=humble`.
+- Use `MBAM_EXTRA_UNDERLAYS=/path/to/limo/install:/path/to/other/install` when a machine needs extra overlays with machine-specific paths.
 - `controller_host`, `report_port`, `command_port`, and `robot_command_targets_csv` are the transport settings that matter for Humble/Foxy interoperation.
 - `forward_emergency_stop_distance_m` and `forward_slowdown_distance_m` are the main wall / obstacle safety knobs on the LIMO side.
 - `turn_clearance_distance_m` and `side_clearance_distance_m` control how aggressively the robot rejects turns into nearby walls or objects.

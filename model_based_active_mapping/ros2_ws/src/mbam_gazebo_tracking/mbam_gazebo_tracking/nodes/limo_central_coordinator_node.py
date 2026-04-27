@@ -201,12 +201,19 @@ class LimoCentralCoordinator(Node):
         if self.report_socket is not None:
             self._poll_report_socket()
 
-        snapshots = self._get_fresh_snapshots()
-        if snapshots is None:
+        snapshots, missing, stale = self._get_fresh_snapshots()
+        if not snapshots:
+            self.active_track_ids = []
             self._publish_zero_velocities()
             return
 
+        if missing or stale:
+            self.active_track_ids = []
+            self._publish_degraded_actions(snapshots, missing, stale)
+            return
+
         if not self._reports_share_frame(snapshots):
+            self.active_track_ids = []
             self._publish_zero_velocities()
             return
 
@@ -235,7 +242,7 @@ class LimoCentralCoordinator(Node):
 
         self._publish_markers(x, labels, self.agent.mu_update, visible)
 
-    def _get_fresh_snapshots(self) -> Optional[List[ReportSnapshot]]:
+    def _get_fresh_snapshots(self) -> Tuple[List[ReportSnapshot], List[str], List[str]]:
         now_sec = self.get_clock().now().nanoseconds * 1e-9
         snapshots: List[ReportSnapshot] = []
         missing = []
@@ -252,11 +259,9 @@ class LimoCentralCoordinator(Node):
 
         if missing:
             self._warn_throttle("missing_reports", f"Waiting for robot reports from: {missing}")
-            return None
         if stale:
             self._warn_throttle("stale_reports", f"Robot reports are stale for: {stale}")
-            return None
-        return snapshots
+        return snapshots, missing, stale
 
     def _reports_share_frame(self, snapshots: Sequence[ReportSnapshot]) -> bool:
         frames = {snap.report.world_frame for snap in snapshots if snap.report.world_frame}
@@ -283,23 +288,58 @@ class LimoCentralCoordinator(Node):
             action[idx, 1] = self.search_angular_velocity if idx % 2 == 0 else -self.search_angular_velocity
         return action
 
+    def _publish_degraded_actions(
+        self,
+        snapshots: Sequence[ReportSnapshot],
+        missing: Sequence[str],
+        stale: Sequence[str],
+    ):
+        available = {snap.report.robot_name for snap in snapshots}
+        action_map: Dict[str, Tuple[float, float]] = {}
+        for idx, robot_name in enumerate(self.robot_names):
+            if robot_name in available:
+                angular_z = self.search_angular_velocity if idx % 2 == 0 else -self.search_angular_velocity
+                action_map[robot_name] = (self.search_linear_velocity, angular_z)
+            else:
+                action_map[robot_name] = (0.0, 0.0)
+
+        degraded_reasons = []
+        if missing:
+            degraded_reasons.append(f"missing={list(missing)}")
+        if stale:
+            degraded_reasons.append(f"stale={list(stale)}")
+        self._warn_throttle(
+            "degraded_search",
+            "Using degraded startup commands while reports are incomplete: " + ", ".join(degraded_reasons),
+        )
+        self._publish_action_map(action_map)
+
+    def _publish_action_map(self, action_map: Dict[str, Tuple[float, float]]):
+        for robot_name in self.robot_names:
+            linear_x, angular_z = action_map.get(robot_name, (0.0, 0.0))
+            if self.transport_mode == "ros":
+                msg = Twist()
+                msg.linear.x = float(linear_x)
+                msg.angular.z = float(angular_z)
+                self.cmd_pubs[robot_name].publish(msg)
+            else:
+                self._send_udp_command(
+                    robot_name=robot_name,
+                    linear_x=float(linear_x),
+                    angular_z=float(angular_z),
+                )
+
     def _publish_actions(self, action: torch.Tensor):
         action = action.detach()
         if action.dim() == 1:
             action = action[None, :]
 
+        action_map: Dict[str, Tuple[float, float]] = {}
         for idx, robot_name in enumerate(self.robot_names):
             if idx >= action.size(0):
                 continue
-            linear_x = float(action[idx, 0])
-            angular_z = float(action[idx, 1])
-            if self.transport_mode == "ros":
-                msg = Twist()
-                msg.linear.x = linear_x
-                msg.angular.z = angular_z
-                self.cmd_pubs[robot_name].publish(msg)
-            else:
-                self._send_udp_command(robot_name=robot_name, linear_x=linear_x, angular_z=angular_z)
+            action_map[robot_name] = (float(action[idx, 0]), float(action[idx, 1]))
+        self._publish_action_map(action_map)
 
     def _publish_zero_velocities(self):
         if self.transport_mode == "ros":

@@ -266,6 +266,7 @@ ros2 run mbam_gazebo_tracking limo_central_coordinator --ros-args --params-file 
 - `search_angular_velocity` controls how the robots scan when no target tracks are currently active.
 - `ros2_ws/setup.bash` auto-detects the local ROS 2 distro from `/opt/ros`, and you can override that with `MBAM_ROS_DISTRO=foxy` or `MBAM_ROS_DISTRO=humble`.
 - Use `MBAM_EXTRA_UNDERLAYS=/path/to/limo/install:/path/to/other/install` when a machine needs extra overlays with machine-specific paths.
+- The observer now publishes pose-only heartbeat reports until camera image and calibration are ready, and the central coordinator will issue degraded search commands to robots that are already reporting instead of freezing the whole team.
 - `controller_host`, `report_port`, `command_port`, and `robot_command_targets_csv` are the transport settings that matter for Humble/Foxy interoperation.
 - `forward_emergency_stop_distance_m` and `forward_slowdown_distance_m` are the main wall / obstacle safety knobs on the LIMO side.
 - `turn_clearance_distance_m` and `side_clearance_distance_m` control how aggressively the robot rejects turns into nearby walls or objects.

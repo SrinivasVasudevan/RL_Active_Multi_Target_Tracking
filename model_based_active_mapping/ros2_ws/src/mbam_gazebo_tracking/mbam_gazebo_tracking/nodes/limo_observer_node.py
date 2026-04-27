@@ -195,11 +195,24 @@ class LimoObservationReporter(Node):
         pose = self.latest_pose
         rgb = self.latest_rgb
         calibration = self.calibration
-        if pose is None or rgb is None or calibration is None:
-            self._warn_throttle("sensor_ready", "Waiting for pose, camera image, and camera calibration.")
+        if pose is None:
+            self._warn_throttle("pose_ready", "Waiting for robot pose before publishing reports.")
             return
 
-        detections = self.detector.detect(rgb)
+        if rgb is None or calibration is None:
+            missing = []
+            if rgb is None:
+                missing.append("camera image")
+            if calibration is None:
+                missing.append("camera calibration")
+            self._warn_throttle(
+                "perception_ready",
+                f"Publishing pose-only reports while waiting for: {', '.join(missing)}.",
+            )
+            detections = []
+        else:
+            detections = self.detector.detect(rgb)
+
         target_detections = []
         for det in detections:
             projection = project_detection_to_ground(

@@ -30,7 +30,7 @@ set -u
 cd "${WS_DIR}"
 colcon build --symlink-install --packages-select mbam_gazebo_tracking
 set +u
-source "${WS_DIR}/install/setup.bash"
+source "${WS_DIR}/setup.bash"
 set -u
 
 if [[ -z "${ROS_LOG_DIR:-}" ]]; then

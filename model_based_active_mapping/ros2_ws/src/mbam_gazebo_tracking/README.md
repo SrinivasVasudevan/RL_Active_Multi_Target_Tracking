@@ -11,6 +11,8 @@ ROS 2 package for running `run_model_based_testing`-equivalent evaluation in Gaz
   - Camera detects whether target-colored pixels are present in-view.
   - Lidar provides range at corresponding camera-bearing angles.
   - Fused estimate gives relative/absolute target position used for state update.
+  - Lidar point-marker visualization is off by default to avoid clutter.
+  - Gazebo lidar ray rendering is also disabled in the agent model.
 - Publishes markers to RViz for true targets, estimated targets, and agent poses.
 - Logs per-episode and aggregated tracking statistics to JSON.
 
@@ -27,9 +29,9 @@ ROS 2 package for running `run_model_based_testing`-equivalent evaluation in Gaz
 - `launch/run_mbam_gazebo.launch.py`
   - Starts Gazebo, spawns models, starts RViz and runner node.
 - `models/agent_bot/`
-  - Blue agent model with camera + lidar + planar move plugin.
+  - Turtlebot-like agent model with camera + lidar + planar move plugin.
 - `models/target_bot/`
-  - Orange target model.
+  - Red quadruped-style target model.
 - `worlds/mbam_tracking.world`
   - World used for testing.
 - `rviz/mbam_tracking.rviz`
@@ -82,6 +84,40 @@ bash ros2_ws/src/mbam_gazebo_tracking/scripts/run_model_based_testing_gazebo.sh 
   model_path:=/absolute/path/to/best_model_seed42.pth
 ```
 
+Use Gazebo model-database assets when available (for example, external ANYmal or burger-like models):
+
+```bash
+bash ros2_ws/src/mbam_gazebo_tracking/scripts/run_model_based_testing_gazebo.sh \
+  agent_model_database:=turtlebot3_burger \
+  target_model_database:=CERBERUS_ANYMAL_C_SENSOR_CONFIG_1
+```
+
+If database models are not installed locally, the package automatically falls back to the bundled local SDF models.
+Set `strict_database_models:=true` to disable this fallback behavior.
+
+`run_model_based_testing_gazebo.sh` also auto-assigns a `ROS_DOMAIN_ID` when unset, so one run is isolated from stale Gazebo/ROS processes from older sessions.
+
+Lidar marker restriction controls:
+
+```bash
+publish_lidar_markers:=false
+lidar_marker_stride:=6
+restrict_lidar_visualization:=true
+lidar_visualization_margin_rad:=0.05
+```
+
+Collision safety controls:
+
+```bash
+enable_collision_pause:=true
+collision_lookahead_sec:=1.0
+collision_robot_radius:=0.28
+collision_target_radius:=0.30
+collision_safety_margin:=0.10
+```
+
+When enabled, each robot command is paused (zero linear/angular velocity) if the predicted near-future motion would collide with another robot or a target.
+
 ## Output
 
 - JSON results are saved under:
@@ -93,4 +129,5 @@ bash ros2_ws/src/mbam_gazebo_tracking/scripts/run_model_based_testing_gazebo.sh 
 - Existing files in the original project were not edited.
 - The ROS package uses camera color segmentation + lidar range gating for observation fusion, while target dynamics are controlled by the episode runner node.
 - Launch also publishes a static `world -> map` transform so RViz fixed-frame rendering is immediately valid.
-- Gazebo world is intentionally obstacle-free and uses a custom green ground plane to avoid robot falls/collisions.
+- Gazebo world uses a custom green ground plane and decorative visual-only trees (non-collidable) to keep motion safe while improving scene realism.
+- The run script uses workspace-local `GAZEBO_HOME` and defaults DDS to UDP transport to avoid common permission issues in restricted/containerized environments.

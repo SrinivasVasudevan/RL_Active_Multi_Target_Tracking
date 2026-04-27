@@ -64,6 +64,15 @@ class MBAMEpisodeRunner(Node):
         self.declare_parameter("lidar_index_half_window", 2)
         self.declare_parameter("lidar_range_gate", 1.5)
         self.declare_parameter("lidar_min_valid_range", 0.25)
+        self.declare_parameter("publish_lidar_markers", False)
+        self.declare_parameter("lidar_marker_stride", 6)
+        self.declare_parameter("restrict_lidar_visualization", True)
+        self.declare_parameter("lidar_visualization_margin_rad", 0.05)
+        self.declare_parameter("enable_collision_pause", True)
+        self.declare_parameter("collision_lookahead_sec", 1.0)
+        self.declare_parameter("collision_robot_radius", 0.28)
+        self.declare_parameter("collision_target_radius", 0.30)
+        self.declare_parameter("collision_safety_margin", 0.10)
         self.declare_parameter("target_hide_distance", 1000.0)
         self.declare_parameter("marker_frame", "map")
         self.declare_parameter("debug_sensor_fusion", False)
@@ -82,6 +91,15 @@ class MBAMEpisodeRunner(Node):
         self.lidar_index_half_window = int(self.get_parameter("lidar_index_half_window").value)
         self.lidar_range_gate = float(self.get_parameter("lidar_range_gate").value)
         self.lidar_min_valid_range = float(self.get_parameter("lidar_min_valid_range").value)
+        self.publish_lidar_markers = bool(self.get_parameter("publish_lidar_markers").value)
+        self.lidar_marker_stride = max(1, int(self.get_parameter("lidar_marker_stride").value))
+        self.restrict_lidar_visualization = bool(self.get_parameter("restrict_lidar_visualization").value)
+        self.lidar_visualization_margin_rad = float(self.get_parameter("lidar_visualization_margin_rad").value)
+        self.enable_collision_pause = bool(self.get_parameter("enable_collision_pause").value)
+        self.collision_lookahead_sec = float(self.get_parameter("collision_lookahead_sec").value)
+        self.collision_robot_radius = float(self.get_parameter("collision_robot_radius").value)
+        self.collision_target_radius = float(self.get_parameter("collision_target_radius").value)
+        self.collision_safety_margin = float(self.get_parameter("collision_safety_margin").value)
         self.target_hide_distance = float(self.get_parameter("target_hide_distance").value)
         self.marker_frame = str(self.get_parameter("marker_frame").value)
         self.debug_sensor_fusion = bool(self.get_parameter("debug_sensor_fusion").value)
@@ -144,6 +162,7 @@ class MBAMEpisodeRunner(Node):
         self.all_trail_summaries: List[Dict] = []
         self.overall_avg_targets: List[float] = []
         self.results_start_time = time.strftime("%Y%m%d_%H%M%S")
+        self.last_collision_pause_log_time = 0.0
 
         os.makedirs(self.output_dir, exist_ok=True)
 
@@ -284,10 +303,14 @@ class MBAMEpisodeRunner(Node):
 
             hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
 
-            # Orange target color segmentation.
-            lower = np.array([5, 90, 60], dtype=np.uint8)
-            upper = np.array([25, 255, 255], dtype=np.uint8)
-            mask = cv2.inRange(hsv, lower, upper)
+            # Red target color segmentation (hue wraps around 0/180 in HSV).
+            lower_r1 = np.array([0, 90, 60], dtype=np.uint8)
+            upper_r1 = np.array([12, 255, 255], dtype=np.uint8)
+            lower_r2 = np.array([165, 90, 60], dtype=np.uint8)
+            upper_r2 = np.array([179, 255, 255], dtype=np.uint8)
+            mask1 = cv2.inRange(hsv, lower_r1, upper_r1)
+            mask2 = cv2.inRange(hsv, lower_r2, upper_r2)
+            mask = cv2.bitwise_or(mask1, mask2)
 
             col_scores = np.sum(mask > 0, axis=0)
             visible_cols = col_scores >= self.camera_min_pixels_per_col
@@ -313,10 +336,21 @@ class MBAMEpisodeRunner(Node):
                 self.get_logger().warn("Waiting for /gazebo/set_entity_state service...")
                 return
 
-            missing = [name for name in (self.agent_names + self.target_names) if name not in self.model_states]
-            if missing:
+            missing_targets = [name for name in self.target_names if name not in self.model_states]
+            if missing_targets:
                 self.get_logger().warn(
-                    f"Waiting for spawned entities to appear in /gazebo/model_states: {missing}"
+                    f"Waiting for spawned target entities to appear in /gazebo/model_states: {missing_targets}"
+                )
+                return
+
+            missing_odom = [
+                self.agent_names[i]
+                for i in range(self.num_robots)
+                if self.odom_by_robot[i] is None
+            ]
+            if missing_odom:
+                self.get_logger().warn(
+                    f"Waiting for robot odometry topics to become ready: {missing_odom}"
                 )
                 return
 
@@ -334,7 +368,8 @@ class MBAMEpisodeRunner(Node):
             return
 
         action = self.agent.plan(self.v, x)
-        self._publish_actions(action)
+        safe_action = self._apply_collision_pause(action, x)
+        self._publish_actions(safe_action)
 
         self.mu_real = landmark_motion_real(self.mu_real, self.v, self.a, self.b, self.w)
         self.v = self.sampler.rollout_landmark_velocity(self.num_landmarks, self.landmark_motion_bias)
@@ -651,6 +686,87 @@ class MBAMEpisodeRunner(Node):
             msg.angular.z = float(action[i, 1])
             self.agent_cmd_pubs[i].publish(msg)
 
+    def _apply_collision_pause(self, action: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
+        if not self.enable_collision_pause:
+            return action
+
+        if action.dim() == 1:
+            action = action[None, :]
+        safe_action = action.detach().clone()
+
+        lookahead = max(self.tau, self.collision_lookahead_sec)
+        robot_clearance = max(0.0, 2.0 * self.collision_robot_radius + self.collision_safety_margin)
+        target_clearance = max(0.0, self.collision_robot_radius + self.collision_target_radius + self.collision_safety_margin)
+
+        current_xy: List[Tuple[float, float]] = []
+        predicted_xy: List[Tuple[float, float]] = []
+        velocity_xy: List[Tuple[float, float]] = []
+        for i in range(self.num_robots):
+            px = float(x[i, 0])
+            py = float(x[i, 1])
+            yaw = float(x[i, 2])
+            vlin = float(safe_action[i, 0]) if i < safe_action.size(0) else 0.0
+            vx = vlin * math.cos(yaw)
+            vy = vlin * math.sin(yaw)
+            nx = px + vlin * lookahead * math.cos(yaw)
+            ny = py + vlin * lookahead * math.sin(yaw)
+            current_xy.append((px, py))
+            predicted_xy.append((nx, ny))
+            velocity_xy.append((vx, vy))
+
+        should_pause = [False] * self.num_robots
+
+        # Robot-robot near-collision prediction.
+        for i in range(self.num_robots):
+            for j in range(i + 1, self.num_robots):
+                d_min = self._min_pair_distance_over_horizon(
+                    p1=current_xy[i],
+                    v1=velocity_xy[i],
+                    p2=current_xy[j],
+                    v2=velocity_xy[j],
+                    horizon=lookahead,
+                )
+                if d_min <= robot_clearance:
+                    should_pause[i] = True
+                    should_pause[j] = True
+
+        # Robot-target near-collision prediction.
+        for i in range(self.num_robots):
+            if should_pause[i]:
+                continue
+            start = current_xy[i]
+            end = predicted_xy[i]
+            for t in range(self.num_landmarks):
+                tname = self.target_names[t]
+                if tname in self.model_states:
+                    tx, ty, _ = self.model_states[tname]
+                else:
+                    tx = float(self.mu_real[t, 0])
+                    ty = float(self.mu_real[t, 1])
+                d_now = math.hypot(start[0] - tx, start[1] - ty)
+                d_pred = math.hypot(end[0] - tx, end[1] - ty)
+                d_seg = self._point_segment_distance(tx, ty, start[0], start[1], end[0], end[1])
+                if min(d_now, d_pred, d_seg) <= target_clearance:
+                    should_pause[i] = True
+                    break
+
+        paused_count = 0
+        for i in range(self.num_robots):
+            if should_pause[i] and i < safe_action.size(0):
+                safe_action[i, 0] = 0.0
+                safe_action[i, 1] = 0.0
+                paused_count += 1
+
+        if paused_count > 0:
+            now = time.time()
+            if now - self.last_collision_pause_log_time > 1.0:
+                self.get_logger().warn(
+                    f"Collision safety: paused {paused_count}/{self.num_robots} robot(s) this tick."
+                )
+                self.last_collision_pause_log_time = now
+
+        return safe_action
+
     def _publish_zero_velocities(self):
         zero = Twist()
         for pub in self.agent_cmd_pubs:
@@ -685,7 +801,7 @@ class MBAMEpisodeRunner(Node):
             m.pose.orientation.w = math.cos(yaw * 0.5)
             msg.markers.append(m)
 
-        # True target positions (orange spheres).
+        # True target positions (red quadruped targets).
         for t in range(self.num_landmarks):
             m = Marker()
             m.header.frame_id = self.marker_frame
@@ -737,7 +853,11 @@ class MBAMEpisodeRunner(Node):
             msg.markers.append(m)
 
         # Lidar scan points in map/world coordinates to keep sensor context visible in RViz.
-        scan_stride = 3
+        if not self.publish_lidar_markers:
+            self.marker_pub.publish(msg)
+            return
+
+        scan_stride = self.lidar_marker_stride
         min_valid = self.lidar_min_valid_range
         scan_colors = (
             (0.05, 0.45, 1.0),  # robot 0: blue
@@ -756,6 +876,11 @@ class MBAMEpisodeRunner(Node):
             valid = np.isfinite(ranges)
             valid &= ranges >= max(scan.range_min, min_valid)
             valid &= ranges <= (scan.range_max - 0.05)
+            if self.restrict_lidar_visualization:
+                hfov = max(0.1, float(self.camera_hfov_by_robot[i]))
+                angle_limit = 0.5 * hfov + max(0.0, self.lidar_visualization_margin_rad)
+                wrapped_angles = np.arctan2(np.sin(angles), np.cos(angles))
+                valid &= np.abs(wrapped_angles) <= angle_limit
             if not np.any(valid):
                 continue
 
@@ -820,6 +945,42 @@ class MBAMEpisodeRunner(Node):
     @staticmethod
     def _angle_wrap(v: float) -> float:
         return (v + math.pi) % (2.0 * math.pi) - math.pi
+
+    @staticmethod
+    def _point_segment_distance(px: float, py: float, x1: float, y1: float, x2: float, y2: float) -> float:
+        dx = x2 - x1
+        dy = y2 - y1
+        denom = dx * dx + dy * dy
+        if denom <= 1e-9:
+            return math.hypot(px - x1, py - y1)
+        u = ((px - x1) * dx + (py - y1) * dy) / denom
+        u = max(0.0, min(1.0, u))
+        cx = x1 + u * dx
+        cy = y1 + u * dy
+        return math.hypot(px - cx, py - cy)
+
+    @staticmethod
+    def _min_pair_distance_over_horizon(
+        p1: Tuple[float, float],
+        v1: Tuple[float, float],
+        p2: Tuple[float, float],
+        v2: Tuple[float, float],
+        horizon: float,
+    ) -> float:
+        # Relative motion in 2D: d(t) = ||(p1 - p2) + (v1 - v2) t||.
+        # Solve for closest point in [0, horizon].
+        px = p1[0] - p2[0]
+        py = p1[1] - p2[1]
+        vx = v1[0] - v2[0]
+        vy = v1[1] - v2[1]
+        vv = vx * vx + vy * vy
+        if vv <= 1e-9 or horizon <= 1e-9:
+            return math.hypot(px, py)
+        t_star = -(px * vx + py * vy) / vv
+        t_star = max(0.0, min(horizon, t_star))
+        dx = px + vx * t_star
+        dy = py + vy * t_star
+        return math.hypot(dx, dy)
 
     def _log_trail_summary(self, summary: Dict):
         lines = []

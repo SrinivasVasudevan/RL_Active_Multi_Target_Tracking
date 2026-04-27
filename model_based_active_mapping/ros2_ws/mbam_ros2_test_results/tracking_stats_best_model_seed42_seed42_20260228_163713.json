@@ -1,0 +1,3906 @@
+{
+  "model_path": "/home/svasude7/HRA/RL_Active_Multi_Target_Tracking/model_based_active_mapping/ros2_ws/install/mbam_gazebo_tracking/share/mbam_gazebo_tracking/checkpoints/best_model_seed42.pth",
+  "model_name": "best_model_seed42",
+  "seed": 42,
+  "network_type": 1,
+  "num_robots": 2,
+  "num_test_trials": 30,
+  "trails": [
+    {
+      "num_targets": 4,
+      "num_robots": 2,
+      "total_steps": 20,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": 2,
+          "steps_possible": 18,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 2,
+              "percentage": 11.11
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 2,
+          "cumulative_percentage": 11.11,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 2,
+          "steps_possible": 18,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 2,
+              "percentage": 11.11
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 2,
+          "cumulative_percentage": 11.11,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": 12,
+          "steps_possible": 8,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 2,
+              "percentage": 25.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 1,
+              "percentage": 12.5
+            }
+          ],
+          "cumulative_steps": 2,
+          "cumulative_percentage": 25.0,
+          "overlap_steps": 1,
+          "overlap_percentage": 12.5
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": 12,
+          "steps_possible": 8,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 2,
+              "percentage": 25.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 2,
+              "percentage": 25.0
+            }
+          ],
+          "cumulative_steps": 3,
+          "cumulative_percentage": 37.5,
+          "overlap_steps": 1,
+          "overlap_percentage": 12.5
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 52,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 8,
+            "percentage": 15.38
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 3,
+            "percentage": 5.77
+          }
+        ],
+        "cumulative_steps": 9,
+        "cumulative_percentage": 17.31,
+        "overlap_steps": 2,
+        "overlap_percentage": 3.85
+      },
+      "episode": 1
+    },
+    {
+      "num_targets": 3,
+      "num_robots": 2,
+      "total_steps": 15,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 0,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 0,
+        "cumulative_percentage": 0.0,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 2
+    },
+    {
+      "num_targets": 3,
+      "num_robots": 2,
+      "total_steps": 15,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": 2,
+          "steps_possible": 13,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 3,
+              "percentage": 23.08
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 3,
+          "cumulative_percentage": 23.08,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 2,
+          "steps_possible": 13,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 2,
+              "percentage": 15.38
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 2,
+          "cumulative_percentage": 15.38,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 26,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 5,
+            "percentage": 19.23
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 5,
+        "cumulative_percentage": 19.23,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 3
+    },
+    {
+      "num_targets": 7,
+      "num_robots": 2,
+      "total_steps": 35,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": 9,
+          "steps_possible": 26,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 6,
+              "percentage": 23.08
+            }
+          ],
+          "cumulative_steps": 6,
+          "cumulative_percentage": 23.08,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 13,
+          "steps_possible": 22,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 4,
+              "percentage": 18.18
+            }
+          ],
+          "cumulative_steps": 4,
+          "cumulative_percentage": 18.18,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": 13,
+          "steps_possible": 22,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 3,
+              "percentage": 13.64
+            }
+          ],
+          "cumulative_steps": 3,
+          "cumulative_percentage": 13.64,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 4,
+          "first_tracked_step": 11,
+          "steps_possible": 24,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 2,
+              "percentage": 8.33
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 3,
+              "percentage": 12.5
+            }
+          ],
+          "cumulative_steps": 5,
+          "cumulative_percentage": 20.83,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 5,
+          "first_tracked_step": 12,
+          "steps_possible": 23,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 10,
+              "percentage": 43.48
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 3,
+              "percentage": 13.04
+            }
+          ],
+          "cumulative_steps": 12,
+          "cumulative_percentage": 52.17,
+          "overlap_steps": 1,
+          "overlap_percentage": 4.35
+        },
+        {
+          "target_idx": 6,
+          "first_tracked_step": 12,
+          "steps_possible": 23,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 10,
+              "percentage": 43.48
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 4,
+              "percentage": 17.39
+            }
+          ],
+          "cumulative_steps": 12,
+          "cumulative_percentage": 52.17,
+          "overlap_steps": 2,
+          "overlap_percentage": 8.7
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 140,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 22,
+            "percentage": 15.71
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 23,
+            "percentage": 16.43
+          }
+        ],
+        "cumulative_steps": 42,
+        "cumulative_percentage": 30.0,
+        "overlap_steps": 3,
+        "overlap_percentage": 2.14
+      },
+      "episode": 4
+    },
+    {
+      "num_targets": 6,
+      "num_robots": 2,
+      "total_steps": 30,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 4,
+          "first_tracked_step": 7,
+          "steps_possible": 23,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 4.35
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 1,
+              "percentage": 4.35
+            }
+          ],
+          "cumulative_steps": 2,
+          "cumulative_percentage": 8.7,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 5,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 23,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 1,
+            "percentage": 4.35
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 1,
+            "percentage": 4.35
+          }
+        ],
+        "cumulative_steps": 2,
+        "cumulative_percentage": 8.7,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 5
+    },
+    {
+      "num_targets": 3,
+      "num_robots": 2,
+      "total_steps": 15,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": 0,
+          "steps_possible": 15,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 2,
+              "percentage": 13.33
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 2,
+          "cumulative_percentage": 13.33,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 2,
+          "steps_possible": 13,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 7.69
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 7.69,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 28,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 3,
+            "percentage": 10.71
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 3,
+        "cumulative_percentage": 10.71,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 6
+    },
+    {
+      "num_targets": 6,
+      "num_robots": 2,
+      "total_steps": 30,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 4,
+          "first_tracked_step": 11,
+          "steps_possible": 19,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 2,
+              "percentage": 10.53
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 2,
+          "cumulative_percentage": 10.53,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 5,
+          "first_tracked_step": 12,
+          "steps_possible": 18,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 2,
+              "percentage": 11.11
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 2,
+          "cumulative_percentage": 11.11,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 37,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 4,
+            "percentage": 10.81
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 4,
+        "cumulative_percentage": 10.81,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 7
+    },
+    {
+      "num_targets": 4,
+      "num_robots": 2,
+      "total_steps": 20,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": 17,
+          "steps_possible": 3,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 3,
+              "percentage": 100.0
+            }
+          ],
+          "cumulative_steps": 3,
+          "cumulative_percentage": 100.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 18,
+          "steps_possible": 2,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 2,
+              "percentage": 100.0
+            }
+          ],
+          "cumulative_steps": 2,
+          "cumulative_percentage": 100.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 5,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 5,
+            "percentage": 100.0
+          }
+        ],
+        "cumulative_steps": 5,
+        "cumulative_percentage": 100.0,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 8
+    },
+    {
+      "num_targets": 7,
+      "num_robots": 2,
+      "total_steps": 35,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 4,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 5,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 6,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 0,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 0,
+        "cumulative_percentage": 0.0,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 9
+    },
+    {
+      "num_targets": 5,
+      "num_robots": 2,
+      "total_steps": 25,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": 10,
+          "steps_possible": 15,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 1,
+              "percentage": 6.67
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 6.67,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": 5,
+          "steps_possible": 20,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 5.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 5.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 4,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 35,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 1,
+            "percentage": 2.86
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 1,
+            "percentage": 2.86
+          }
+        ],
+        "cumulative_steps": 2,
+        "cumulative_percentage": 5.71,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 10
+    },
+    {
+      "num_targets": 7,
+      "num_robots": 2,
+      "total_steps": 35,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 4,
+          "first_tracked_step": 14,
+          "steps_possible": 21,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 4.76
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 4.76,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 5,
+          "first_tracked_step": 17,
+          "steps_possible": 18,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 3,
+              "percentage": 16.67
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 3,
+          "cumulative_percentage": 16.67,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 6,
+          "first_tracked_step": 17,
+          "steps_possible": 18,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 4,
+              "percentage": 22.22
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 4,
+          "cumulative_percentage": 22.22,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 57,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 8,
+            "percentage": 14.04
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 8,
+        "cumulative_percentage": 14.04,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 11
+    },
+    {
+      "num_targets": 6,
+      "num_robots": 2,
+      "total_steps": 30,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": 12,
+          "steps_possible": 18,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 5.56
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 5.56,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 4,
+          "first_tracked_step": 13,
+          "steps_possible": 17,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 5.88
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 5.88,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 5,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 35,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 2,
+            "percentage": 5.71
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 2,
+        "cumulative_percentage": 5.71,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 12
+    },
+    {
+      "num_targets": 3,
+      "num_robots": 2,
+      "total_steps": 15,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 4,
+          "steps_possible": 11,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 9.09
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 9.09,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 11,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 1,
+            "percentage": 9.09
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 1,
+        "cumulative_percentage": 9.09,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 13
+    },
+    {
+      "num_targets": 6,
+      "num_robots": 2,
+      "total_steps": 30,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 20,
+          "steps_possible": 10,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 10.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 10.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": 6,
+          "steps_possible": 24,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 1,
+              "percentage": 4.17
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 4.17,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": 20,
+          "steps_possible": 10,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 10.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 10.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 4,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 5,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 44,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 2,
+            "percentage": 4.55
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 1,
+            "percentage": 2.27
+          }
+        ],
+        "cumulative_steps": 3,
+        "cumulative_percentage": 6.82,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 14
+    },
+    {
+      "num_targets": 4,
+      "num_robots": 2,
+      "total_steps": 20,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 19,
+          "steps_possible": 1,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 100.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 100.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 1,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 1,
+            "percentage": 100.0
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 1,
+        "cumulative_percentage": 100.0,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 15
+    },
+    {
+      "num_targets": 5,
+      "num_robots": 2,
+      "total_steps": 25,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": 7,
+          "steps_possible": 18,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 2,
+              "percentage": 11.11
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 2,
+          "cumulative_percentage": 11.11,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 4,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 18,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 2,
+            "percentage": 11.11
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 2,
+        "cumulative_percentage": 11.11,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 16
+    },
+    {
+      "num_targets": 3,
+      "num_robots": 2,
+      "total_steps": 15,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 0,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 0,
+        "cumulative_percentage": 0.0,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 17
+    },
+    {
+      "num_targets": 6,
+      "num_robots": 2,
+      "total_steps": 30,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": 7,
+          "steps_possible": 23,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 1,
+              "percentage": 4.35
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 4.35,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 8,
+          "steps_possible": 22,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 4,
+              "percentage": 18.18
+            }
+          ],
+          "cumulative_steps": 4,
+          "cumulative_percentage": 18.18,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": 6,
+          "steps_possible": 24,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 2,
+              "percentage": 8.33
+            }
+          ],
+          "cumulative_steps": 2,
+          "cumulative_percentage": 8.33,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": 12,
+          "steps_possible": 18,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 1,
+              "percentage": 5.56
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 5.56,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 4,
+          "first_tracked_step": 6,
+          "steps_possible": 24,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 4,
+              "percentage": 16.67
+            }
+          ],
+          "cumulative_steps": 4,
+          "cumulative_percentage": 16.67,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 5,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 111,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 12,
+            "percentage": 10.81
+          }
+        ],
+        "cumulative_steps": 12,
+        "cumulative_percentage": 10.81,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 18
+    },
+    {
+      "num_targets": 3,
+      "num_robots": 2,
+      "total_steps": 15,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 0,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 0,
+        "cumulative_percentage": 0.0,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 19
+    },
+    {
+      "num_targets": 3,
+      "num_robots": 2,
+      "total_steps": 15,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 0,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 0,
+        "cumulative_percentage": 0.0,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 20
+    },
+    {
+      "num_targets": 5,
+      "num_robots": 2,
+      "total_steps": 25,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 4,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 0,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 0,
+        "cumulative_percentage": 0.0,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 21
+    },
+    {
+      "num_targets": 4,
+      "num_robots": 2,
+      "total_steps": 20,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": 8,
+          "steps_possible": 12,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 8.33
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 8.33,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 7,
+          "steps_possible": 13,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 7.69
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 7.69,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 25,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 2,
+            "percentage": 8.0
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 2,
+        "cumulative_percentage": 8.0,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 22
+    },
+    {
+      "num_targets": 7,
+      "num_robots": 2,
+      "total_steps": 35,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 4,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 5,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 6,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 0,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 0,
+        "cumulative_percentage": 0.0,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 23
+    },
+    {
+      "num_targets": 4,
+      "num_robots": 2,
+      "total_steps": 20,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 0,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 0,
+        "cumulative_percentage": 0.0,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 24
+    },
+    {
+      "num_targets": 5,
+      "num_robots": 2,
+      "total_steps": 25,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": 11,
+          "steps_possible": 14,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 7.14
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 7.14,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 11,
+          "steps_possible": 14,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 7.14
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 7.14,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": 8,
+          "steps_possible": 17,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 1,
+              "percentage": 5.88
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 5.88,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 4,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 45,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 2,
+            "percentage": 4.44
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 1,
+            "percentage": 2.22
+          }
+        ],
+        "cumulative_steps": 3,
+        "cumulative_percentage": 6.67,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 25
+    },
+    {
+      "num_targets": 5,
+      "num_robots": 2,
+      "total_steps": 25,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": 14,
+          "steps_possible": 11,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 2,
+              "percentage": 18.18
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 2,
+          "cumulative_percentage": 18.18,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 12,
+          "steps_possible": 13,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 8,
+              "percentage": 61.54
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 1,
+              "percentage": 7.69
+            }
+          ],
+          "cumulative_steps": 8,
+          "cumulative_percentage": 61.54,
+          "overlap_steps": 1,
+          "overlap_percentage": 7.69
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": 13,
+          "steps_possible": 12,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 2,
+              "percentage": 16.67
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 2,
+          "cumulative_percentage": 16.67,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 4,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 36,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 12,
+            "percentage": 33.33
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 1,
+            "percentage": 2.78
+          }
+        ],
+        "cumulative_steps": 12,
+        "cumulative_percentage": 33.33,
+        "overlap_steps": 1,
+        "overlap_percentage": 2.78
+      },
+      "episode": 26
+    },
+    {
+      "num_targets": 4,
+      "num_robots": 2,
+      "total_steps": 20,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": 2,
+          "steps_possible": 18,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 2,
+              "percentage": 11.11
+            }
+          ],
+          "cumulative_steps": 2,
+          "cumulative_percentage": 11.11,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 1,
+          "steps_possible": 19,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 7,
+              "percentage": 36.84
+            }
+          ],
+          "cumulative_steps": 7,
+          "cumulative_percentage": 36.84,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": 1,
+          "steps_possible": 19,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 5.26
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 5.26,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 56,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 1,
+            "percentage": 1.79
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 9,
+            "percentage": 16.07
+          }
+        ],
+        "cumulative_steps": 10,
+        "cumulative_percentage": 17.86,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 27
+    },
+    {
+      "num_targets": 6,
+      "num_robots": 2,
+      "total_steps": 30,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": 5,
+          "steps_possible": 25,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 4,
+              "percentage": 16.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 4,
+          "cumulative_percentage": 16.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 5,
+          "steps_possible": 25,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 2,
+              "percentage": 8.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 2,
+          "cumulative_percentage": 8.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": 6,
+          "steps_possible": 24,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 2,
+              "percentage": 8.33
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 2,
+          "cumulative_percentage": 8.33,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": 5,
+          "steps_possible": 25,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 4.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 4.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 4,
+          "first_tracked_step": 5,
+          "steps_possible": 25,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 4.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 4.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 5,
+          "first_tracked_step": 6,
+          "steps_possible": 24,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 4.17
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 4.17,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 148,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 11,
+            "percentage": 7.43
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          }
+        ],
+        "cumulative_steps": 11,
+        "cumulative_percentage": 7.43,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 28
+    },
+    {
+      "num_targets": 6,
+      "num_robots": 2,
+      "total_steps": 30,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 14,
+          "steps_possible": 16,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 1,
+              "percentage": 6.25
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 6.25,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 4,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 5,
+          "first_tracked_step": -1,
+          "steps_possible": 0,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 0,
+          "cumulative_percentage": 0.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 16,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 1,
+            "percentage": 6.25
+          }
+        ],
+        "cumulative_steps": 1,
+        "cumulative_percentage": 6.25,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 29
+    },
+    {
+      "num_targets": 3,
+      "num_robots": 2,
+      "total_steps": 15,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": 13,
+          "steps_possible": 2,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 1,
+              "percentage": 50.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 50.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 13,
+          "steps_possible": 2,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 1,
+              "percentage": 50.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 50.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": 13,
+          "steps_possible": 2,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 1,
+              "percentage": 50.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 50.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 6,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 0,
+            "percentage": 0.0
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 3,
+            "percentage": 50.0
+          }
+        ],
+        "cumulative_steps": 3,
+        "cumulative_percentage": 50.0,
+        "overlap_steps": 0,
+        "overlap_percentage": 0.0
+      },
+      "episode": 30
+    }
+  ],
+  "aggregated_by_targets": {
+    "3": {
+      "num_trails": 8,
+      "per_robot_avg_pct": [
+        4.88,
+        6.25
+      ],
+      "per_robot_std_pct": [
+        6.86,
+        16.54
+      ],
+      "cumulative_avg_pct": 11.13,
+      "cumulative_std_pct": 16.11,
+      "overlap_avg_pct": 0.0,
+      "overlap_std_pct": 0.0
+    },
+    "4": {
+      "num_trails": 6,
+      "per_robot_avg_pct": [
+        20.86,
+        20.31
+      ],
+      "per_robot_std_pct": [
+        35.81,
+        36.1
+      ],
+      "cumulative_avg_pct": 40.53,
+      "cumulative_std_pct": 42.48,
+      "overlap_avg_pct": 0.64,
+      "overlap_std_pct": 1.43
+    },
+    "5": {
+      "num_trails": 5,
+      "per_robot_avg_pct": [
+        10.35,
+        1.57
+      ],
+      "per_robot_std_pct": [
+        12.06,
+        1.3
+      ],
+      "cumulative_avg_pct": 11.36,
+      "cumulative_std_pct": 11.54,
+      "overlap_avg_pct": 0.56,
+      "overlap_std_pct": 1.11
+    },
+    "6": {
+      "num_trails": 7,
+      "per_robot_avg_pct": [
+        4.69,
+        3.38
+      ],
+      "per_robot_std_pct": [
+        3.59,
+        3.78
+      ],
+      "cumulative_avg_pct": 8.08,
+      "cumulative_std_pct": 1.94,
+      "overlap_avg_pct": 0.0,
+      "overlap_std_pct": 0.0
+    },
+    "7": {
+      "num_trails": 4,
+      "per_robot_avg_pct": [
+        7.44,
+        4.11
+      ],
+      "per_robot_std_pct": [
+        7.46,
+        7.11
+      ],
+      "cumulative_avg_pct": 11.01,
+      "cumulative_std_pct": 12.37,
+      "overlap_avg_pct": 0.54,
+      "overlap_std_pct": 0.93
+    }
+  },
+  "legacy_summary": {
+    "mean_targets_tracked": 0.1835,
+    "std_targets_tracked": 0.2446
+  },
+  "sensor_mode": "camera_presence + lidar_range_fusion",
+  "timestamp": "20260228_163713"
+}

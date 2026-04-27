@@ -1,0 +1,144 @@
+{
+  "model_path": "/home/svasude7/HRA/RL_Active_Multi_Target_Tracking/model_based_active_mapping/ros2_ws/install/mbam_gazebo_tracking/share/mbam_gazebo_tracking/checkpoints/best_model_seed42.pth",
+  "model_name": "best_model_seed42",
+  "seed": 42,
+  "network_type": 1,
+  "num_robots": 2,
+  "num_test_trials": 1,
+  "trails": [
+    {
+      "num_targets": 4,
+      "num_robots": 2,
+      "total_steps": 20,
+      "per_target": [
+        {
+          "target_idx": 0,
+          "first_tracked_step": 2,
+          "steps_possible": 18,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 5.56
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 5.56,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 1,
+          "first_tracked_step": 2,
+          "steps_possible": 18,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 3,
+              "percentage": 16.67
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 0,
+              "percentage": 0.0
+            }
+          ],
+          "cumulative_steps": 3,
+          "cumulative_percentage": 16.67,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        },
+        {
+          "target_idx": 2,
+          "first_tracked_step": 12,
+          "steps_possible": 8,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 12.5
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 1,
+              "percentage": 12.5
+            }
+          ],
+          "cumulative_steps": 1,
+          "cumulative_percentage": 12.5,
+          "overlap_steps": 1,
+          "overlap_percentage": 12.5
+        },
+        {
+          "target_idx": 3,
+          "first_tracked_step": 12,
+          "steps_possible": 8,
+          "per_robot": [
+            {
+              "robot_idx": 0,
+              "steps_tracked": 1,
+              "percentage": 12.5
+            },
+            {
+              "robot_idx": 1,
+              "steps_tracked": 3,
+              "percentage": 37.5
+            }
+          ],
+          "cumulative_steps": 4,
+          "cumulative_percentage": 50.0,
+          "overlap_steps": 0,
+          "overlap_percentage": 0.0
+        }
+      ],
+      "totals": {
+        "total_possible_steps": 52,
+        "per_robot": [
+          {
+            "robot_idx": 0,
+            "total_steps_tracked": 6,
+            "percentage": 11.54
+          },
+          {
+            "robot_idx": 1,
+            "total_steps_tracked": 4,
+            "percentage": 7.69
+          }
+        ],
+        "cumulative_steps": 9,
+        "cumulative_percentage": 17.31,
+        "overlap_steps": 1,
+        "overlap_percentage": 1.92
+      },
+      "episode": 1
+    }
+  ],
+  "aggregated_by_targets": {
+    "4": {
+      "num_trails": 1,
+      "per_robot_avg_pct": [
+        11.54,
+        7.69
+      ],
+      "per_robot_std_pct": [
+        0.0,
+        0.0
+      ],
+      "cumulative_avg_pct": 17.31,
+      "cumulative_std_pct": 0.0,
+      "overlap_avg_pct": 1.92,
+      "overlap_std_pct": 0.0
+    }
+  },
+  "legacy_summary": {
+    "mean_targets_tracked": 0.45,
+    "std_targets_tracked": 0.0
+  },
+  "sensor_mode": "camera_presence + lidar_range_fusion",
+  "timestamp": "20260228_155129"
+}

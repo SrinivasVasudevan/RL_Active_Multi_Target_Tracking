@@ -5,10 +5,12 @@ from typing import Dict, Optional
 
 import numpy as np
 import rclpy
+from builtin_interfaces.msg import Time as TimeMsg
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
 from sensor_msgs.msg import CameraInfo, Image, LaserScan
 from std_msgs.msg import String
+from tf2_ros import Buffer, TransformException, TransformListener
 
 from mbam_gazebo_tracking.core.network_utils import create_udp_socket
 from mbam_gazebo_tracking.core.perception import (
@@ -43,6 +45,8 @@ class LimoObservationReporter(Node):
         self.declare_parameter("scan_topic", "/scan")
         self.declare_parameter("report_period_sec", 0.25)
         self.declare_parameter("world_frame", "map")
+        self.declare_parameter("base_frame", "base_link")
+        self.declare_parameter("enable_tf_pose_fallback", True)
         self.declare_parameter("camera_height_m", 0.32)
         self.declare_parameter("camera_pitch_rad", 0.30)
         self.declare_parameter("camera_forward_offset_m", 0.0)
@@ -76,6 +80,8 @@ class LimoObservationReporter(Node):
         self.controller_host = str(self.get_parameter("controller_host").value)
         self.controller_report_port = int(self.get_parameter("controller_report_port").value)
         self.world_frame = str(self.get_parameter("world_frame").value)
+        self.base_frame = str(self.get_parameter("base_frame").value).strip() or "base_link"
+        self.enable_tf_pose_fallback = bool(self.get_parameter("enable_tf_pose_fallback").value)
         self.camera_height_m = float(self.get_parameter("camera_height_m").value)
         self.camera_pitch_rad = float(self.get_parameter("camera_pitch_rad").value)
         self.camera_forward_offset_m = float(self.get_parameter("camera_forward_offset_m").value)
@@ -108,6 +114,13 @@ class LimoObservationReporter(Node):
         self.warn_times: Dict[str, float] = {}
         self.report_pub = None
         self.report_socket: Optional[socket.socket] = None
+        self.pose_source = "none"
+        self.tf_buffer: Optional[Buffer] = None
+        self.tf_listener: Optional[TransformListener] = None
+
+        if self.enable_tf_pose_fallback:
+            self.tf_buffer = Buffer()
+            self.tf_listener = TransformListener(self.tf_buffer, self)
 
         odom_topic = str(self.get_parameter("odom_topic").value)
         image_topic = str(self.get_parameter("image_topic").value)
@@ -138,6 +151,7 @@ class LimoObservationReporter(Node):
             self.get_logger().info(
                 f"LIMO observer ready for robot='{self.robot_name}' "
                 f"udp_report_target={self.controller_host}:{self.controller_report_port} "
+                f"pose_source=odom('{odom_topic}')/tf('{self.world_frame}'<-'{self.base_frame}') "
                 f"detectors={self.detector.describe_backends()}"
             )
 
@@ -147,6 +161,7 @@ class LimoObservationReporter(Node):
         yaw = self._quat_to_yaw(q.x, q.y, q.z, q.w)
         frame_id = msg.header.frame_id.strip() or self.world_frame
         self.latest_pose = RobotPose(x=float(p.x), y=float(p.y), yaw=float(yaw), frame_id=frame_id)
+        self.pose_source = f"odom:{msg.header.frame_id.strip() or self.world_frame}"
 
     def _camera_info_cb(self, msg: CameraInfo):
         if msg.k[0] == 0.0 or msg.k[4] == 0.0:
@@ -192,11 +207,18 @@ class LimoObservationReporter(Node):
         )
 
     def _process_and_publish(self):
+        self._refresh_pose_from_tf()
         pose = self.latest_pose
         rgb = self.latest_rgb
         calibration = self.calibration
         if pose is None:
-            self._warn_throttle("pose_ready", "Waiting for robot pose before publishing reports.")
+            self._warn_throttle(
+                "pose_ready",
+                "Waiting for robot pose before publishing reports. "
+                f"Configured odom_topic='{self._count_subscriptions_topic_hint()}' "
+                f"tf_fallback={self.enable_tf_pose_fallback} "
+                f"target_frame='{self.world_frame}' base_frame='{self.base_frame}'.",
+            )
             return
 
         if rgb is None or calibration is None:
@@ -275,6 +297,38 @@ class LimoObservationReporter(Node):
             )
         except OSError as exc:
             self._warn_throttle("udp_report_send", f"Failed to send UDP robot report: {exc}")
+
+    def _refresh_pose_from_tf(self):
+        if not self.enable_tf_pose_fallback or self.tf_buffer is None:
+            return
+        try:
+            transform = self.tf_buffer.lookup_transform(
+                self.world_frame,
+                self.base_frame,
+                TimeMsg(),
+            )
+        except TransformException as exc:
+            if self.latest_pose is None:
+                self._warn_throttle(
+                    "tf_pose_unavailable",
+                    f"TF pose lookup failed for '{self.world_frame}' <- '{self.base_frame}': {exc}",
+                )
+            return
+
+        translation = transform.transform.translation
+        rotation = transform.transform.rotation
+        yaw = self._quat_to_yaw(rotation.x, rotation.y, rotation.z, rotation.w)
+        self.latest_pose = RobotPose(
+            x=float(translation.x),
+            y=float(translation.y),
+            yaw=float(yaw),
+            frame_id=transform.header.frame_id.strip() or self.world_frame,
+        )
+        self.pose_source = f"tf:{self.world_frame}<-{self.base_frame}"
+
+    def _count_subscriptions_topic_hint(self) -> str:
+        topic = str(self.get_parameter("odom_topic").value).strip()
+        return topic or "/odom"
 
     def _warn_throttle(self, key: str, message: str, period_sec: float = 2.0):
         now_sec = self.get_clock().now().nanoseconds * 1e-9

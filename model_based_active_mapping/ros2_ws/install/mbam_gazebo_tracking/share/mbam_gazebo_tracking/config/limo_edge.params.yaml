@@ -11,6 +11,8 @@
     scan_topic: "/scan"
     report_period_sec: 0.25
     world_frame: "map"
+    base_frame: "base_link"
+    enable_tf_pose_fallback: true
     camera_height_m: 0.32
     camera_pitch_rad: 0.30
     camera_forward_offset_m: 0.0

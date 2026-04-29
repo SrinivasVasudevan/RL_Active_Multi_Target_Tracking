@@ -96,6 +96,7 @@ class LimoSafetyController(Node):
         self.latest_scan_time_sec = 0.0
         self.warn_times: Dict[str, float] = {}
         self.command_socket: Optional[socket.socket] = None
+        self.has_received_command = False
 
         if self.command_transport_mode == "ros":
             self.create_subscription(Twist, self.input_cmd_topic, self._cmd_cb, 20)
@@ -123,6 +124,7 @@ class LimoSafetyController(Node):
     def _cmd_cb(self, msg: Twist):
         self.latest_cmd = msg
         self.latest_cmd_time_sec = self._now_sec()
+        self.has_received_command = True
 
     def _scan_cb(self, msg: LaserScan):
         self.latest_scan = msg
@@ -133,7 +135,16 @@ class LimoSafetyController(Node):
         now_sec = self._now_sec()
         if self.latest_cmd is None or (now_sec - self.latest_cmd_time_sec) > self.cmd_timeout_sec:
             self._publish_zero()
-            self._warn_throttle("cmd_timeout", "Planner command timed out; publishing zero velocity.")
+            if self.has_received_command:
+                self._warn_throttle("cmd_timeout", "Planner command timed out; publishing zero velocity.")
+            else:
+                wait_target = self.input_cmd_topic if self.command_transport_mode == "ros" else (
+                    f"{self.command_bind_host}:{self.command_port}"
+                )
+                self._warn_throttle(
+                    "cmd_waiting",
+                    f"Waiting for first planner command on {wait_target}; publishing zero velocity.",
+                )
             return
 
         if self.latest_scan is None or (now_sec - self.latest_scan_time_sec) > self.scan_timeout_sec:
@@ -321,6 +332,7 @@ class LimoSafetyController(Node):
             twist.angular.z = float(cmd.angular_z)
             self.latest_cmd = twist
             self.latest_cmd_time_sec = self._now_sec()
+            self.has_received_command = True
 
     def _warn_throttle(self, key: str, message: str, period_sec: float = 1.0):
         now_sec = self._now_sec()

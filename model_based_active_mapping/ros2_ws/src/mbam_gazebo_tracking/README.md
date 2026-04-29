@@ -215,6 +215,7 @@ ros2 launch mbam_gazebo_tracking run_mbam_limo_edge.launch.py \
   controller_host:=192.168.50.1 \
   controller_report_port:=15000 \
   odom_topic:=/global_ekf/odom \
+  base_frame:=base_link \
   image_topic:=/camera/color/image_raw \
   camera_info_topic:=/camera/color/camera_info \
   scan_topic:=/scan \
@@ -267,6 +268,7 @@ ros2 run mbam_gazebo_tracking limo_central_coordinator --ros-args --params-file 
 - `ros2_ws/setup.bash` auto-detects the local ROS 2 distro from `/opt/ros`, and you can override that with `MBAM_ROS_DISTRO=foxy` or `MBAM_ROS_DISTRO=humble`.
 - Use `MBAM_EXTRA_UNDERLAYS=/path/to/limo/install:/path/to/other/install` when a machine needs extra overlays with machine-specific paths.
 - The observer now publishes pose-only heartbeat reports until camera image and calibration are ready, and the central coordinator will issue degraded search commands to robots that are already reporting instead of freezing the whole team.
+- If the configured odometry topic is missing, the observer falls back to TF using `world_frame -> base_frame`. Set `world_frame:=odom` if the LIMO only has local odometry, or keep `world_frame:=map` only if both robots truly share the same global frame.
 - `controller_host`, `report_port`, `command_port`, and `robot_command_targets_csv` are the transport settings that matter for Humble/Foxy interoperation.
 - `forward_emergency_stop_distance_m` and `forward_slowdown_distance_m` are the main wall / obstacle safety knobs on the LIMO side.
 - `turn_clearance_distance_m` and `side_clearance_distance_m` control how aggressively the robot rejects turns into nearby walls or objects.

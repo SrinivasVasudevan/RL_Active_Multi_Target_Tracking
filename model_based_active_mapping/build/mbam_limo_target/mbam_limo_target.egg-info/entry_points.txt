@@ -1,0 +1,4 @@
+[console_scripts]
+cmd_vel_safety = mbam_limo_target.cmd_vel_safety_node:main
+target_velocity_follower = mbam_limo_target.target_velocity_follower_node:main
+

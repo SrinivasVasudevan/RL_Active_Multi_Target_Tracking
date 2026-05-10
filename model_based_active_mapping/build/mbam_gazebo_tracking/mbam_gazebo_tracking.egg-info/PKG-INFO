@@ -1,0 +1,12 @@
+Metadata-Version: 2.1
+Name: mbam-gazebo-tracking
+Version: 0.1.0
+Summary: ROS 2 Gazebo + RViz testing package for model-based active mapping with attention policy control.
+Home-page: UNKNOWN
+Maintainer: mbam
+Maintainer-email: maintainer@example.com
+License: MIT
+Platform: UNKNOWN
+
+UNKNOWN
+

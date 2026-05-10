@@ -1,0 +1,3 @@
+[console_scripts]
+cmd_vel_safety = mbam_limo_agent.cmd_vel_safety_node:main
+

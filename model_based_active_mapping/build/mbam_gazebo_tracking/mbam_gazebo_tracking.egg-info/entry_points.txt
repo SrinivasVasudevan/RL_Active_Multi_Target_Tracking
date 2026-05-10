@@ -1,0 +1,3 @@
+[console_scripts]
+episode_runner = mbam_gazebo_tracking.nodes.episode_runner_node:main
+

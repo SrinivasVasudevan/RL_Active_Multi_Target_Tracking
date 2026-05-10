@@ -1,0 +1,3 @@
+[console_scripts]
+central_runner = mbam_central_controller.nodes.central_runner_node:main
+

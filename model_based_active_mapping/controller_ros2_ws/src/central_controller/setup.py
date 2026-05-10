@@ -22,7 +22,7 @@ setup(
     zip_safe=True,
     maintainer='mbam',
     maintainer_email='maintainer@example.com',
-    description='Central ROS 2 controller node for LIMO observation acknowledgment tests.',
+    description='Central ROS 2 controller node for LIMO observation and velocity command tests.',
     license='MIT',
     tests_require=['pytest'],
     entry_points={

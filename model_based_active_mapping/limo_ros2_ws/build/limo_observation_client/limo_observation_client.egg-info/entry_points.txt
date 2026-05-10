@@ -1,0 +1,3 @@
+[console_scripts]
+limo_observation_node = limo_observation_client.nodes.limo_observation_node:main
+

@@ -22,7 +22,7 @@ setup(
     zip_safe=True,
     maintainer='mbam',
     maintainer_email='maintainer@example.com',
-    description='LIMO observation publisher and acknowledgment subscriber for network tests.',
+    description='LIMO observation publisher and safety-limited velocity command gateway.',
     license='MIT',
     tests_require=['pytest'],
     entry_points={

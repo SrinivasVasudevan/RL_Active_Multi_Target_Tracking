@@ -1,0 +1,15 @@
+# Agent node parameters (one set shared across all agent robots, robot_id set at launch)
+
+limo_agent:
+  ros__parameters:
+    max_num_targets: 7
+    tau: 1.0                         # must match central_controller tau
+    camera_half_window_px: 8         # camera column search window
+    camera_min_pixels_per_col: 8     # minimum orange pixels to count as detection
+    lidar_index_half_window: 2       # LiDAR beam search window around expected bearing
+    lidar_range_gate: 1.5            # [m] max allowed range error for LiDAR association
+    lidar_min_valid_range: 0.25      # [m] ignore LiDAR returns closer than this
+    fov_half_angle: 1.3963           # [rad] ~80 deg; must be >= FoV psi from policy params
+    safety_stop_dist: 0.30           # [m] full stop threshold
+    safety_slow_dist: 0.55           # [m] begin slowdown threshold
+    safety_forward_half_angle: 0.52  # [rad] ~30 deg forward cone for obstacle check

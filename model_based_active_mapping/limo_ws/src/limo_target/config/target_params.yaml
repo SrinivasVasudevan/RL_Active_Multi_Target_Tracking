@@ -1,0 +1,14 @@
+# Target node parameters (one set shared across all target robots, robot_id set at launch)
+
+limo_target:
+  ros__parameters:
+    tau: 2.0                         # target control period [s] — slower than agents
+    max_linear_vel: 0.08             # [m/s] max forward speed
+    max_angular_vel: 0.50            # [rad/s] max turn rate
+    vel_decay: 0.75                  # velocity persistence (0=no memory, 1=constant)
+    vel_noise_sigma: 0.04            # Cartesian velocity noise per step [m/s]
+    kp_yaw: 1.20                     # proportional gain for heading alignment
+    safety_stop_dist: 0.30           # [m] full stop threshold
+    safety_slow_dist: 0.55           # [m] begin slowdown threshold
+    safety_forward_half_angle: 0.52  # [rad] ~30 deg forward obstacle cone
+    seed: 42                         # set -1 for unseeded random behaviour

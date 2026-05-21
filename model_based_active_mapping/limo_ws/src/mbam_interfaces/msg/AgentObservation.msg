@@ -1,0 +1,9 @@
+std_msgs/Header header
+int32 robot_id
+float64 pose_x
+float64 pose_y
+float64 pose_yaw
+int32 max_num_targets
+float64[] z_world_x
+float64[] z_world_y
+bool[] visible

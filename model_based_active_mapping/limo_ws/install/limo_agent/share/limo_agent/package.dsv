@@ -1,0 +1,9 @@
+source;share/limo_agent/hook/pythonpath.ps1
+source;share/limo_agent/hook/pythonpath.dsv
+source;share/limo_agent/hook/pythonpath.sh
+source;share/limo_agent/hook/ament_prefix_path.ps1
+source;share/limo_agent/hook/ament_prefix_path.dsv
+source;share/limo_agent/hook/ament_prefix_path.sh
+source;../../build/limo_agent/share/limo_agent/hook/pythonpath_develop.ps1
+source;../../build/limo_agent/share/limo_agent/hook/pythonpath_develop.dsv
+source;../../build/limo_agent/share/limo_agent/hook/pythonpath_develop.sh

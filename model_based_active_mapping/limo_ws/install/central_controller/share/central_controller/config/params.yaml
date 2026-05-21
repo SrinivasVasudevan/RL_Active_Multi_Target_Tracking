@@ -1,0 +1,14 @@
+# Central controller parameters for real Limo deployment
+# Velocities are throttled to safe, visualizable speeds
+
+central_controller:
+  ros__parameters:
+    num_robots: 2
+    num_targets: 3
+    max_num_targets: 7
+    tau: 1.0               # control period [s] — 1 Hz, easy to visualize
+    max_linear_vel: 0.15   # [m/s] policy output clipped here (~7.5% of trained 2.0 m/s)
+    max_angular_vel: 0.40  # [rad/s] policy output clipped here
+    seed: 42
+    arena_half_size: 5.0   # [m] half-width of operating area (initial belief spread)
+    # params_file and model_path are set from launch arguments

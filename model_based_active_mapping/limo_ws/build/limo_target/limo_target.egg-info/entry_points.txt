@@ -1,0 +1,3 @@
+[console_scripts]
+target_node = limo_target.nodes.target_node:main
+

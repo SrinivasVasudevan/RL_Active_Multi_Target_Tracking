@@ -1,0 +1,4 @@
+source;share/mbam_interfaces/local_setup.bash
+source;share/mbam_interfaces/local_setup.dsv
+source;share/mbam_interfaces/local_setup.sh
+source;share/mbam_interfaces/local_setup.zsh

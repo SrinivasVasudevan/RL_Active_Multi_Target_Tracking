@@ -1,0 +1,7 @@
+{
+  "package_name": "mbam_interfaces",
+  "non_idl_tuples": [
+    "/home/svasude7/HRA/RL_Active_Multi_Target_Tracking/model_based_active_mapping/limo_ws/src/mbam_interfaces:msg/AgentObservation.msg",
+    "/home/svasude7/HRA/RL_Active_Multi_Target_Tracking/model_based_active_mapping/limo_ws/src/mbam_interfaces:msg/TargetBeliefs.msg"
+  ]
+}

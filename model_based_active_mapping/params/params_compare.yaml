@@ -31,3 +31,22 @@ lr: 0.0003
 max_epoch: 1000
 batch_size: 60
 num_test_trials: 30
+
+# Decomposed Reward Architecture (--network-type 2). Passed straight to HRAAgent; `lr` above is the
+# actor learning rate. reward_weights only scalarizes the logged episode score -- each Q-head always
+# trains on its own raw component reward.
+hra:
+  gamma: 0.99
+  critic_lr: 0.001
+  buffer_capacity: 200000
+  batch_size: 256
+  updates_per_episode: 50
+  warmup_transitions: 2000
+  polyak: 0.995
+  expl_noise: 0.2
+  noise_decay: 0.999
+  min_expl_noise: 0.05
+  reward_weights:
+    exp: 1.0
+    coord: 1.0
+    pers: 1.0

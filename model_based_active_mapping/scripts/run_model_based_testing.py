@@ -14,11 +14,13 @@ from torch import tensor
 from envs.simple_env import SimpleEnv, SimpleEnvAtt
 from multi_robot_env import MultiRobotEnv
 from agents.model_based_agent import ModelBasedAgent, ModelBasedAgentAtt
+from agents.hra_agent import HRAAgent
 from utilities.utils import triangle_SDF
 
 parser = argparse.ArgumentParser(description='model-based mapping')
-parser.add_argument('--network-type', type=int, default=1, help='by default, it should attention block,'
-                                                                'otherwise, it would be MLP')
+parser.add_argument('--network-type', type=int, default=1,
+                    help='1: attention policy with linear reward scalarization (baseline); '
+                         '2: Decomposed Reward Architecture (HRA); otherwise MLP')
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--model-path', type=str, default=None, help='Path to the .pth model checkpoint')
 parser.add_argument('--num-robots', type=int, default=2)
@@ -347,7 +349,7 @@ def run_model_based_testing(params_filename):
     num_test_trials = params['num_test_trials']
 
     use_multi = args.num_robots > 1
-    if args.network_type == 1:
+    if args.network_type in (1, 2):
         if use_multi:
             env = MultiRobotEnv(num_robots=args.num_robots, max_num_landmarks=max_num_landmarks, horizon=horizon, tau=tau,
                                 A=A, B=B, V=V, W=W, landmark_motion_scale=landmark_motion_scale, psi=psi, radius=radius,
@@ -355,8 +357,13 @@ def run_model_based_testing(params_filename):
         else:
             env = SimpleEnvAtt(max_num_landmarks=max_num_landmarks, horizon=horizon, tau=tau,
                                A=A, B=B, V=V, W=W, landmark_motion_scale=landmark_motion_scale, psi=psi, radius=radius)
-        agent = ModelBasedAgentAtt(max_num_landmarks=max_num_landmarks, init_info=init_info, A=A, B=B, W=W,
-                                   radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots)
+        if args.network_type == 1:
+            agent = ModelBasedAgentAtt(max_num_landmarks=max_num_landmarks, init_info=init_info, A=A, B=B, W=W,
+                                       radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots)
+        else:
+            agent = HRAAgent(max_num_landmarks=max_num_landmarks, init_info=init_info, A=A, B=B, W=W,
+                             radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots,
+                             **params.get('hra', {}))
     else:
         if use_multi:
             env = MultiRobotEnv(num_robots=args.num_robots, max_num_landmarks=max_num_landmarks, horizon=horizon, tau=tau,

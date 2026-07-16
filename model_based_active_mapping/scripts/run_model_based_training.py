@@ -15,11 +15,13 @@ from utilities.utils import triangle_SDF
 from envs.simple_env import SimpleEnv, SimpleEnvAtt
 from multi_robot_env import MultiRobotEnv
 from agents.model_based_agent import ModelBasedAgent, ModelBasedAgentAtt
+from agents.hra_agent import HRAAgent
 from torch.utils.tensorboard import SummaryWriter
 
 parser = argparse.ArgumentParser(description='model-based mapping')
-parser.add_argument('--network-type', type=int, default=1, help='by default, it should attention block,'
-                                                                'otherwise, it would be MLP')
+parser.add_argument('--network-type', type=int, default=1,
+                    help='1: attention policy with linear reward scalarization (baseline); '
+                         '2: Decomposed Reward Architecture (HRA); otherwise MLP')
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--num-robots', type=int, default=2)
 parser.add_argument('--num-clusters', type=int, default=2)
@@ -110,7 +112,7 @@ def run_model_based_training(params_filename):
     num_test_trials = params['num_test_trials']
 
     use_multi = args.num_robots > 1
-    if args.network_type == 1:
+    if args.network_type in (1, 2):
         if use_multi:
             env = MultiRobotEnv(num_robots=args.num_robots, max_num_landmarks=max_num_landmarks, horizon=horizon, tau=tau,
                                 A=A, B=B, V=V, W=W, landmark_motion_scale=landmark_motion_scale, psi=psi, radius=radius,
@@ -118,8 +120,13 @@ def run_model_based_training(params_filename):
         else:
             env = SimpleEnvAtt(max_num_landmarks=max_num_landmarks, horizon=horizon, tau=tau,
                                A=A, B=B, V=V, W=W, landmark_motion_scale=landmark_motion_scale, psi=psi, radius=radius)
-        agent = ModelBasedAgentAtt(max_num_landmarks=max_num_landmarks, init_info=init_info, A=A, B=B, W=W,
-                            radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots, uncertainty_threshold=15.0)
+        if args.network_type == 1:
+            agent = ModelBasedAgentAtt(max_num_landmarks=max_num_landmarks, init_info=init_info, A=A, B=B, W=W,
+                                radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots, uncertainty_threshold=15.0)
+        else:
+            agent = HRAAgent(max_num_landmarks=max_num_landmarks, init_info=init_info, A=A, B=B, W=W,
+                             radius=radius, psi=psi, kappa=kappa, V=V, lr=lr, num_robots=args.num_robots,
+                             **params.get('hra', {}))
     else:
         if use_multi:
             env = MultiRobotEnv(num_robots=args.num_robots, max_num_landmarks=max_num_landmarks, horizon=horizon, tau=tau,
@@ -148,7 +155,9 @@ def run_model_based_training(params_filename):
     agent.train_policy()
     reward_list = np.empty((max_epoch, batch_size))
     action_list = np.full((max_epoch * batch_size, horizon, args.num_robots, 2), np.nan)
-    best_reward = 1.
+    # The baseline's objective is dominated by accumulated information gain and starts well above 1.
+    # The DRA logs a per-step scalarized score on a different scale, so it needs an open floor.
+    best_reward = float('-inf') if args.network_type == 2 else 1.
     for i in range(max_epoch):
         agent.set_policy_grad_to_zero()
 
@@ -187,6 +196,9 @@ def run_model_based_training(params_filename):
             print(f"Saving visualization for epoch {i + 1}...")
             os.makedirs('./training_visualizations', exist_ok=True)
 
+            # Render the deterministic policy: for the DRA this also keeps the exploration noise off
+            # and stops the rollout from feeding the replay buffer.
+            agent.eval_policy()
             mu_real, v, x, done = env.reset()
             agent.reset_estimate_mu(mu_real)
             agent.reset_agent_info()
@@ -212,6 +224,8 @@ def run_model_based_training(params_filename):
                     video.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
                 video.release()
                 print(f"Saved video to {video_name}\n")
+
+            agent.train_policy()
 
     torch.save(agent.get_policy_state_dict(), final_model_path)
 

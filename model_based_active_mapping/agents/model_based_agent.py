@@ -179,6 +179,17 @@ class ModelBasedAgent:
         )
         step_reward = step_reward.clamp(min=-self._reward_clip, max=self._reward_clip)
 
+        if self._dra_enabled:
+            # Same quantities, kept separate instead of summed. Signs are folded
+            # in so that maximising sum_j Q^j matches maximising the objective.
+            self._step_components = {
+                'coord': float(-self._overlap_weight * overlap_frac),
+                'pers': float(self._persistence_weight * persist_frac
+                              + self._tracking_continuity_weight * continuity_bonus
+                              - self._loss_weight * loss_frac),
+                'coverage': float(self._coverage_weight * coverage_ratio),
+            }
+
         self._episode_reward = self._episode_reward + step_reward
         self._reward_steps += 1
 
@@ -393,6 +404,14 @@ class ModelBasedAgentAtt:
         self._overlap_weight = float(weights['overlap'])
         self._coverage_weight = float(weights['coverage'])
         self._tracking_continuity_weight = float(weights['tracking_continuity'])
+
+        # --- Decomposed Reward Architecture (thesis 3.8) -------------------
+        # Off by default: with _dra_enabled False this class behaves exactly as
+        # the linear-scalarization baseline.
+        self._dra_enabled = False
+        self._dra_records = []
+        self._dra_pending = None
+        self._step_components = None
         
         self._reward_clip = float(reward_clip)
         self._log_epsilon = 1e-6
@@ -519,6 +538,17 @@ class ModelBasedAgentAtt:
         )
         step_reward = step_reward.clamp(min=-self._reward_clip, max=self._reward_clip)
 
+        if self._dra_enabled:
+            # Same quantities, kept separate instead of summed. Signs are folded
+            # in so that maximising sum_j Q^j matches maximising the objective.
+            self._step_components = {
+                'coord': float(-self._overlap_weight * overlap_frac),
+                'pers': float(self._persistence_weight * persist_frac
+                              + self._tracking_continuity_weight * continuity_bonus
+                              - self._loss_weight * loss_frac),
+                'coverage': float(self._coverage_weight * coverage_ratio),
+            }
+
         self._episode_reward = self._episode_reward + step_reward
         self._reward_steps += 1
 
@@ -578,6 +608,10 @@ class ModelBasedAgentAtt:
 
         batch_input = torch.stack(observations)
         actions = self._policy.forward(batch_input)
+
+        if self._dra_enabled:
+            self._dra_capture(batch_input, actions)
+
         return actions
 
     def update_info_mu(self, mu_real, x):
@@ -628,6 +662,75 @@ class ModelBasedAgentAtt:
             torch.log(info_prior.clamp_min(self._log_epsilon)))
         self._accumulated_info_gain = self._accumulated_info_gain + info_gain
         self._mu_predict = self._mu_update
+
+        if self._dra_enabled:
+            self._dra_set_rewards(info_gain)
+
+    # ------------------------------------------------------------------
+    # Decomposed Reward Architecture hooks (thesis 3.8)
+    # ------------------------------------------------------------------
+
+    def enable_dra(self, enabled: bool = True, coverage_into: str = "exp"):
+        """Turn on per-step transition recording for DRA training.
+
+        coverage_into: the baseline reward has a coverage term that the thesis's
+        three-way split (exp / coord / pers) does not name. Fold it into the
+        exploration component by default - keeping targets in view is what the
+        exploration reward is ultimately for.
+        """
+        self._dra_enabled = bool(enabled)
+        self._dra_coverage_into = coverage_into
+        self.reset_dra_episode()
+
+    def reset_dra_episode(self):
+        self._dra_records = []
+        self._dra_pending = None
+        self._step_components = None
+
+    def _dra_capture(self, batch_input, actions):
+        """Called from plan(): close out the previous step, open the next one."""
+        obs = batch_input.detach().clone()
+        act = actions.detach().clone()
+        if act.dim() == 1:
+            act = act[None, :]
+
+        if self._dra_pending is not None and self._dra_pending.get('rewards') is not None:
+            self._dra_pending['next_obs'] = obs
+            self._dra_pending['done'] = 0.0
+            self._dra_records.append(self._dra_pending)
+
+        self._dra_pending = {'obs': obs, 'action': act, 'rewards': None,
+                             'next_obs': None, 'done': 1.0}
+
+    def _dra_set_rewards(self, info_gain):
+        """Called from update_info_mu(): attach this step's component rewards."""
+        if self._dra_pending is None or self._step_components is None:
+            return
+        n = max(self._num_landmarks, 1)
+        comp = dict(self._step_components)
+        exp_r = float(self._info_gain_weight * info_gain.detach()) / n
+        if getattr(self, '_dra_coverage_into', 'exp') == 'exp':
+            exp_r += comp.pop('coverage', 0.0)
+        else:
+            comp.pop('coverage', None)
+        self._dra_pending['rewards'] = {
+            'exp': exp_r, 'coord': comp['coord'], 'pers': comp['pers'],
+        }
+        self._step_components = None
+
+    def end_dra_episode(self):
+        """Flush the final transition (terminal) and return this episode's records."""
+        if self._dra_pending is not None and self._dra_pending.get('rewards') is not None:
+            self._dra_pending['next_obs'] = self._dra_pending['obs']
+            self._dra_pending['done'] = 1.0
+            self._dra_records.append(self._dra_pending)
+        self._dra_pending = None
+        records, self._dra_records = self._dra_records, []
+        return records
+
+    @property
+    def policy(self):
+        return self._policy
 
     def set_policy_grad_to_zero(self):
         self._policy_optimizer.zero_grad()

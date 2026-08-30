@@ -59,11 +59,16 @@ class PolicyNetAtt(nn.Module):
     #
     #     return action
 
-    def forward(self, observation: torch.Tensor) -> torch.Tensor:
+    def encode(self, observation: torch.Tensor) -> torch.Tensor:
+        """Shared backbone (thesis blocks D1-D7): observation -> latent h_k.
+
+        Split out of forward() so the Decomposed Reward Architecture can attach
+        Q-heads to h_k. forward() is unchanged in behaviour, and no parameter is
+        renamed, so existing checkpoints still load.
+        """
         if len(observation.size()) == 1:
             observation = observation[None, :]
 
-        # compute the policy
         # embeddings of agent's position and other robots (relative)
         agent_pos_embedding = self.relu(self.agent_pos_fc1_pi(observation[:, :self._agent_pos_dim]))
         agent_pos_embedding = self.relu(self.agent_pos_fc2_pi(agent_pos_embedding))
@@ -88,7 +93,15 @@ class PolicyNetAtt(nn.Module):
         landmark_embedding_att = self.relu((torch.matmul(att, torch.transpose(landmark_embedding_tr, 1, 2)).squeeze(1)))
 
         info_embedding = self.relu(self.info_fc1_pi(torch.cat((agent_pos_embedding, landmark_embedding_att), 1)))
-        action = self.tanh(self.action_fc1_pi(info_embedding))
+        return info_embedding
+
+    def act_raw(self, latent: torch.Tensor) -> torch.Tensor:
+        """Policy head (D12) + control scaling (D13): h_k -> action, always [B, 2].
+
+        Unlike forward(), this never squeezes the batch dimension, so the DRA
+        critic can line actions up with latents one row per robot.
+        """
+        action = self.tanh(self.action_fc1_pi(latent))
         action = self.tanh(self.action_fc2_pi(action))
 
         if action.dim() == 1:
@@ -103,7 +116,16 @@ class PolicyNetAtt(nn.Module):
         if scaled_action.shape[1] == 1:
             scaled_action = scaled_action.squeeze(1)
 
+        return scaled_action
+
+    def forward(self, observation: torch.Tensor) -> torch.Tensor:
+        scaled_action = self.act_raw(self.encode(observation))
+
         if scaled_action.shape[0] == 1:
             return scaled_action[0]
 
         return scaled_action
+
+    @property
+    def latent_dim(self) -> int:
+        return self.info_fc1_pi.out_features

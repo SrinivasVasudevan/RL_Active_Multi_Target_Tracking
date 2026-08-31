@@ -412,6 +412,9 @@ class ModelBasedAgentAtt:
         self._dra_records = []
         self._dra_pending = None
         self._step_components = None
+        # Hybrid mode: retain the autograd graph for (h_k, u_k) each step.
+        self._dra_differentiable = False
+        self._graph_records = []
         
         self._reward_clip = float(reward_clip)
         self._log_epsilon = 1e-6
@@ -607,10 +610,18 @@ class ModelBasedAgentAtt:
             observations.append(net_input)
 
         batch_input = torch.stack(observations)
-        actions = self._policy.forward(batch_input)
+
+        # Go through encode()/act_raw() rather than forward() so the shared
+        # latent h_k is available to the critic heads. Behaviour is identical.
+        latent = self._policy.encode(batch_input)
+        actions = self._policy.act_raw(latent)
 
         if self._dra_enabled:
             self._dra_capture(batch_input, actions)
+        if self._dra_differentiable:
+            # Keep the graph: the hybrid objective needs dQ/d(policy params)
+            # through both the latent and the action.
+            self._graph_records.append((latent, actions))
 
         return actions
 
@@ -686,6 +697,24 @@ class ModelBasedAgentAtt:
         self._dra_records = []
         self._dra_pending = None
         self._step_components = None
+        self._graph_records = []
+
+    def enable_differentiable_latents(self, enabled: bool = True):
+        """Retain (h_k, u_k) with grad so a critic surrogate can be added to the
+        analytic objective (hybrid mode)."""
+        self._dra_differentiable = bool(enabled)
+        self._graph_records = []
+
+    def critic_surrogate(self, critic, components):
+        """Mean over this episode's steps of sum_j Q^j(h_k, u_k), differentiable
+        w.r.t. the policy. The Q-heads themselves are treated as fixed."""
+        if not self._graph_records:
+            return None
+        terms = []
+        for latent, action in self._graph_records:
+            qs = critic.q_values(latent, action)
+            terms.append(sum(qs[c] for c in components).mean())
+        return torch.stack(terms).mean()
 
     def _dra_capture(self, batch_input, actions):
         """Called from plan(): close out the previous step, open the next one."""

@@ -198,11 +198,18 @@ def main():
                   f'{(np.mean(surrs) if surrs else 0.0):8.3f} | cumulative {cum:.2f}%  '
                   f'overlap {ovl:.2f}%  targets {tg:.4f}{flag}')
 
+    # Always keep the end-of-training policy: with held-out model selection the
+    # "best" file often stays the warm-start, which would otherwise leave the
+    # trained policy unrecoverable for later evaluation.
+    final_path = os.path.join(args.out_dir, f'final_model_seed{args.seed}_{args.tag}.pth')
+    torch.save(agent.get_policy_state_dict(), final_path)
+
     final = evaluate(env, agent, psi, radius, args.eval_trials, args.eval_seed)
     print(f'\nelapsed {(time.time()-t0)/60:.1f} min   (lambda={args.lam})')
     print(f'baseline : cumulative {base[0]:.2f}%  overlap {base[1]:.2f}%  targets {base[2]:.4f}')
     print(f'final    : cumulative {final[0]:.2f}%  overlap {final[1]:.2f}%  targets {final[2]:.4f}')
     print(f'best     : cumulative {best:.2f}%  -> {best_path}')
+    print(f'final    : -> {final_path}')
 
 
 if __name__ == '__main__':

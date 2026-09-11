@@ -22,5 +22,5 @@ model_based_active_mapping/scripts/test_results/
 model_based_active_mapping/scripts/training_visualizations/
 model_based_active_mapping/scripts/logs/
 model_based_active_mapping/scripts/test_trails/
-model_based_active_mapping/MRMT/
+# MRMT/multi_robot_env.py is imported by the training/testing scripts - keep it tracked
 **.log
